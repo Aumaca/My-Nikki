@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-  uid: { type: String, unique: true },
+  uid: { type: String, unique: true, default: null },
   email: {
     type: String,
     unique: [true],
@@ -34,11 +34,9 @@ const UserSchema = new mongoose.Schema({
   },
   photoURL: {
     type: String,
-    default: "",
   },
   photoFile: {
     type: String,
-    default: "",
   },
   entries: [
     {

@@ -19,7 +19,7 @@ export const register = async (req, res) => {
     try {
       await newUser.save();
       const token = jwt.sign(
-        { email: newUser.email, objId: newUser.id },
+        { email: newUser.email, userID: newUser.id },
         process.env.JWT_SECRET
       );
       res.status(201).json({ token });
@@ -85,7 +85,7 @@ export const googleAuth = async (req, res) => {
         const savedUser = await newUser.save();
 
         const token = jwt.sign(
-          { email: savedUser.email, objId: savedUser.id },
+          { email: savedUser.email, userID: savedUser.id },
           process.env.JWT_SECRET
         );
 
@@ -107,7 +107,7 @@ export const googleAuth = async (req, res) => {
       }
 
       const token = jwt.sign(
-        { email: user.email, objId: user.id },
+        { email: user.email, userID: user.id },
         process.env.JWT_SECRET
       );
       return res.status(200).json({ token });
