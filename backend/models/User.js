@@ -47,11 +47,14 @@ const UserSchema = new mongoose.Schema({
   country: {
     type: String,
   },
-  language: {
+  coordinates: {
     type: String,
   },
   createdAt: {
     type: String,
+  },
+  isComplete: {
+    type: Boolean,
   },
 });
 
