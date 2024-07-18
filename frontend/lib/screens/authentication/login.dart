@@ -2,6 +2,7 @@ import 'package:my_nikki/screens/authentication/header.dart';
 import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:my_nikki/screens/widgets/fields.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/utils/api.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +28,9 @@ class _LoginScreenState extends State<Login> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
+
+  String? emailErrorMessage;
+  String? passwordErrorMessage;
 
   @override
   void initState() {
@@ -65,20 +69,20 @@ class _LoginScreenState extends State<Login> {
         },
         body: jsonEncode(data),
       );
+      var decodedResponse = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
+        showSnackBar(context, "Login successful!", Colors.green);
+        redirectTo(context, '/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error logging in.')),
-        );
+        if (decodedResponse["field"] == "email") {
+          showSnackBar(context, "Could not find your account.", Colors.red);
+        } else if (decodedResponse["field"] == "password") {
+          showSnackBar(context, "Incorrect password.", Colors.red);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request error: $e')),
-      );
+      showSnackBar(context, "Error while logging.", Colors.red);
     }
   }
 
@@ -97,7 +101,9 @@ class _LoginScreenState extends State<Login> {
                 child: Column(
                   children: [
                     buildLabel('Email'),
-                    buildTextField(_emailController),
+                    buildTextField(
+                      _emailController,
+                    ),
                     const SizedBox(height: 16),
                     buildLabel('Password'),
                     buildTextField(_passwordController, isPassword: true),

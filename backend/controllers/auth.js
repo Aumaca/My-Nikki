@@ -2,50 +2,56 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+const createToken = (user) => {
+  return jwt.sign(
+    { email: user.email, userID: user.id },
+    process.env.JWT_SECRET
+  );
+};
+
+const hashPassword = async (password) => {
+  return await bcrypt.hash(password, await bcrypt.genSalt());
+};
+
+const saveUserAndReturnToken = async ({ user, req, res }) => {
+  try {
+    await user.save();
+    const token = createToken(user);
+    res.status(201).json({ token });
+  } catch (err) {
+    res.status(400).json({
+      field: err.errors[Object.keys(err.errors)[0]].properties.path,
+      message: err.errors[Object.keys(err.errors)[0]].message,
+    });
+  }
+};
+
 /* REGISTER USER */
 // If email is already in use and has no UID defined, return 400
 // Create/update user and save, returning 201 and token
 export const register = async (req, res) => {
   try {
-    isGoogleUser = false;
     const { email, password, name, country } = req.body;
 
-    const currentUser = await User.findBy({ email: email });
-    if (currentUser) {
-      if (currentUser.uid) {
-        isGoogleUser = true;
+    const signedUpUser = await User.findOne({ email: email });
+    if (signedUpUser) {
+      if (signedUpUser.uid) {
+        signedUpUser.name = name;
+        signedUpUser.country = country;
+        saveUserAndReturnToken({ user: signedUpUser, req, res });
       } else {
-        res.status(400).json({ msg: "Email already in use." });
+        return res.status(400).json({ msg: "Email already in use." });
       }
     }
 
-    if (isGoogleUser) {
-      currentUser.name = name;
-      currentUser.country = country;
-    } else {
-      const salt = await bcrypt.genSalt();
-      const pwdHash = await bcrypt.hash(password, salt);
-
-      currentUser.email = email;
-      currentUser.password = pwdHash;
-      currentUser.name = name;
-      currentUser.createdAt = new Date().toUTCString();
-      currentUser.country = country;
-    }
-
-    try {
-      await currentUser.save();
-      const token = jwt.sign(
-        { email: currentUser.email, userID: currentUser.id },
-        process.env.JWT_SECRET
-      );
-      res.status(201).json({ token });
-    } catch (err) {
-      res.status(400).json({
-        field: err.errors[Object.keys(err.errors)[0]].properties.path,
-        message: err.errors[Object.keys(err.errors)[0]].message,
-      });
-    }
+    const newUser = new User({
+      email,
+      name,
+      country,
+      password: await hashPassword(password),
+      createdAt: new Date().toUTCString(),
+    });
+    saveUserAndReturnToken({ user: newUser, req, res });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -58,27 +64,19 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    console.log(req.body);
-
-    const user = await User.findBy({ email: email });
+    const user = await User.findOne({ email: email });
     if (!user) {
-      return res.status(400).json({ field: "email", message: "Email invalid" });
+      return res.status(400).json({ field: "email" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch || !user)
+    if (!isMatch) {
       return res.status(400).json({
-        field: "email",
-        field2: "password",
-        message: "Invalid credentials",
+        field: "password",
       });
+    }
 
-    const token = jwt.sign(
-      { email: user.email, objId: user.id },
-      process.env.JWT_SECRET
-    );
-
+    const token = createToken(user);
     res.status(200).json({ token: token });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -93,8 +91,6 @@ export const login = async (req, res) => {
 // Returns 400 or 500 to errors
 export const googleAuth = async (req, res) => {
   try {
-    console.log(req.body);
-
     const { uid, email, photoURL, isNewUser } = req.body;
 
     if (isNewUser) {
@@ -107,12 +103,6 @@ export const googleAuth = async (req, res) => {
           isComplete: false,
         });
         const savedUser = await newUser.save();
-
-        // const token = jwt.sign(
-        //   { email: savedUser.email, userID: savedUser.id },
-        //   process.env.JWT_SECRET
-        // );
-
         if (savedUser) {
           return res.status(201);
         } else {
@@ -133,10 +123,7 @@ export const googleAuth = async (req, res) => {
           message: "User is not new but theres no register...?",
         });
       } else if (user.isComplete) {
-        const token = jwt.sign(
-          { email: user.email, userID: user.id },
-          process.env.JWT_SECRET
-        );
+        const token = createToken(user);
         return res.status(200).json({ token });
       } else {
         return res.status(201);
@@ -146,6 +133,8 @@ export const googleAuth = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const checkToken = async (req, res) => {};
 
 // GOOGLE AUTH
 //  - gets data and send to backend

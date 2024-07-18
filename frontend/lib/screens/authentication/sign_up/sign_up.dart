@@ -1,11 +1,15 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up_step1.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up_step2.dart';
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:my_nikki/utils/redirect.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'dart:convert';
+
+import 'package:my_nikki/utils/secure_storage.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -16,13 +20,10 @@ class SignUp extends StatefulWidget {
 
 class SignUpState extends State<SignUp> {
   final PageController _pageController = PageController();
-  final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   String _selectedCountry = "United States";
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
 
@@ -36,27 +37,30 @@ class SignUpState extends State<SignUp> {
     });
   }
 
+  final Map<String, dynamic> _pageControllerData = {
+    'duration': const Duration(milliseconds: 300),
+    'curve': Curves.easeInOut,
+  };
+
   void _nextPage() {
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+        duration: _pageControllerData['duration'],
+        curve: _pageControllerData['curve']);
   }
 
   void _prevPage() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    _pageController.nextPage(
+        duration: _pageControllerData['duration'],
+        curve: _pageControllerData['curve']);
   }
 
-  Future<void> sendDataToAPI() async {
+  Future<void> _submitForm() async {
     try {
       var url = Uri.parse("${dotenv.get('BACKEND_URL')}/auth/register");
       var data = {
-        'name': _nameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
+        'name': _nameController.text,
         'country': _selectedCountry,
       };
 
@@ -68,25 +72,18 @@ class SignUpState extends State<SignUp> {
         body: jsonEncode(data),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign up successful!')),
-        );
+      if (response.statusCode == 201) {
+        var jsonResponse = jsonDecode(response.body);
+        bool stored = await SecureStorage().writeToken(jsonResponse['token']);
+        if (stored) {
+          showSnackBar(context, "Sign up successful!", Colors.green);
+          redirectTo(context, '/home');
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error while signing up.')),
-        );
+        showSnackBar(context, "Error while signing up.", Colors.red);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request error: $e')),
-      );
-    }
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      sendDataToAPI();
+      showSnackBar(context, "Request error: $e", Colors.red);
     }
   }
 

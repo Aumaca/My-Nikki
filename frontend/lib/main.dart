@@ -1,9 +1,9 @@
 import 'package:my_nikki/screens/authentication/sign_up/sign_up.dart';
+import 'package:my_nikki/screens/splash/splash.dart';
 import 'package:my_nikki/screens/authentication/login.dart';
-import 'package:my_nikki/screens/homepage.dart';
-import 'package:my_nikki/utils/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:my_nikki/screens/home/homepage.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -23,12 +23,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  final SecureStorage secureStorage = SecureStorage();
-
-  Future<String?> getUserToken() async {
-    return await secureStorage.readToken();
-  }
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -39,7 +33,7 @@ class MyApp extends StatelessWidget {
               ColorScheme.fromSeed(seedColor: AppColors.backgroundColor),
           useMaterial3: true,
         ),
-        home: const Login(),
+        home: const SplashScreen(),
         routes: {
           '/login': (context) => const Login(),
           '/sign_up': (context) => const SignUp(),
