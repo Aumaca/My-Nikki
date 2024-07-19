@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:my_nikki/utils/colors.dart";
 import "package:my_nikki/utils/requests.dart";
 
 class SplashScreen extends StatefulWidget {
@@ -26,8 +27,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    return const Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      body: Center(
+          child: CircularProgressIndicator(
+        color: AppColors.secondaryColor,
+      )),
     );
   }
 }
