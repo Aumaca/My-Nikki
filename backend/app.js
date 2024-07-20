@@ -9,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/user.js";
 
 /* CONFIG */
 const __filename = fileURLToPath(import.meta.url);
@@ -30,16 +31,13 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 /* ROUTES */
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 const PORT = process.env.PORT || 3001;
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => {
-    app.listen(PORT, () => {
-      process.env.NODE_ENV !== "test"
-        ? console.log(`Server port: ${PORT}`)
-        : "";
-    });
+    app.listen(PORT, () => {});
   })
   .catch(() => console.log("Error while connecting to mongoDB server."));
 

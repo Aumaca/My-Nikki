@@ -47,9 +47,6 @@ const UserSchema = new mongoose.Schema({
   country: {
     type: String,
   },
-  coordinates: {
-    type: String,
-  },
   createdAt: {
     type: String,
   },

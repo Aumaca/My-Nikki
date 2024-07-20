@@ -1,12 +1,9 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { decode } from "jsonwebtoken";
 import User from "../models/User.js";
 
 const createToken = (user) => {
-  return jwt.sign(
-    { email: user.email, userID: user.id },
-    process.env.JWT_SECRET
-  );
+  return jwt.sign({ userID: user.id }, process.env.JWT_SECRET);
 };
 
 const hashPassword = async (password) => {
@@ -133,8 +130,6 @@ export const googleAuth = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-export const checkToken = async (req, res) => {};
 
 // GOOGLE AUTH
 //  - gets data and send to backend
