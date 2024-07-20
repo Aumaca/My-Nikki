@@ -27,7 +27,11 @@
     "multer-gridfs-storage": "^5.0.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.16",
+    "@types/chai-http": "^4.2.0",
+    "@types/mocha": "^10.0.7",
     "chai": "^5.1.1",
+    "chai-http": "^5.0.0",
     "mocha": "^10.6.0",
     "nodemon": "^3.0.2",
     "supertest": "^7.0.0"

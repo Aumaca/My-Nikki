@@ -5,7 +5,6 @@ export const verifyToken = async (req, res, next) => {
     let token = req.header("Authorization");
     token = token.slice(7, token.length).trimLeft();
 
-    console.log(token);
     if (!token) {
       return res.status(401).send("No token provided");
     }

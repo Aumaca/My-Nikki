@@ -14,9 +14,9 @@ const saveUserAndReturnToken = async ({ user, req, res }) => {
   try {
     await user.save();
     const token = createToken(user);
-    res.status(201).json({ token });
+    return res.status(201).json({ token });
   } catch (err) {
-    res.status(400).json({
+    return res.status(400).json({
       field: err.errors[Object.keys(err.errors)[0]].properties.path,
       message: err.errors[Object.keys(err.errors)[0]].message,
     });
@@ -48,9 +48,10 @@ export const register = async (req, res) => {
       password: await hashPassword(password),
       createdAt: new Date().toUTCString(),
     });
+
     saveUserAndReturnToken({ user: newUser, req, res });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -74,9 +75,9 @@ export const login = async (req, res) => {
     }
 
     const token = createToken(user);
-    res.status(200).json({ token: token });
+    return res.status(200).json({ token: token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -88,7 +89,7 @@ export const login = async (req, res) => {
 // Returns 400 or 500 to errors
 export const googleAuth = async (req, res) => {
   try {
-    const { uid, email, photoURL, isNewUser } = req.body;
+    const { uid, email, photoURL, isNewUser, name, country } = req.body;
 
     if (isNewUser) {
       try {
@@ -101,9 +102,9 @@ export const googleAuth = async (req, res) => {
         });
         const savedUser = await newUser.save();
         if (savedUser) {
-          return res.status(201);
+          return res.status(201).json();
         } else {
-          return res.status(400);
+          return res.status(400).json();
         }
       } catch (err) {
         return res.status(400).json({
@@ -123,11 +124,23 @@ export const googleAuth = async (req, res) => {
         const token = createToken(user);
         return res.status(200).json({ token });
       } else {
-        return res.status(201);
+        user.name = name;
+        user.country = country;
+        user.isComplete = true;
+        try {
+          await User.findByIdAndUpdate(user.id, user);
+          const token = createToken(user);
+          return res.status(201).json({ token });
+        } catch (err) {
+          return res.status(400).json({
+            field: err.errors[Object.keys(err.errors)[0]].properties.path,
+            message: err.errors[Object.keys(err.errors)[0]].message,
+          });
+        }
       }
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
