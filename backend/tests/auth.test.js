@@ -48,7 +48,7 @@ describe("Authentication API Tests", () => {
       });
   });
 
-  it("should login an existing user", (done) => {
+  it("should login a user", (done) => {
     supertest(app)
       .post("/auth/login")
       .send({
@@ -65,78 +65,6 @@ describe("Authentication API Tests", () => {
 
           token = res.body.token;
 
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-  });
-
-  it("should sign up Google new user (as incomplete)", (done) => {
-    supertest(app)
-      .post("/auth/google")
-      .send({
-        uid: "unique_google_user_id",
-        email: "googleuser@example.com",
-        photoURL: "https://example.com/avatar.jpg",
-        isNewUser: true,
-      })
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        try {
-          expect(res.statusCode).to.be.equal(201);
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-  });
-
-  it("should finish signing up Google user (now as complete)", (done) => {
-    supertest(app)
-      .post("/auth/google")
-      .send({
-        uid: "unique_google_user_id",
-        email: "googleuser@example.com",
-        photoURL: "https://example.com/avatar.jpg",
-        name: "google",
-        country: "Brazil",
-        isNewUser: false,
-      })
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        try {
-          expect(res.statusCode).to.be.equal(201);
-          expect(res.body.token).to.be.a("string");
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-  });
-
-  it("should login Google user (now as complete)", (done) => {
-    supertest(app)
-      .post("/auth/google")
-      .send({
-        uid: "unique_google_user_id",
-        email: "googleuser@example.com",
-        photoURL: "https://example.com/avatar.jpg",
-        name: "google",
-        country: "Brazil",
-        isNewUser: false,
-      })
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        try {
-          expect(res.statusCode).to.be.equal(200);
-          expect(res.body.token).to.be.a("string");
           done();
         } catch (error) {
           done(error);

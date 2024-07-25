@@ -1,17 +1,16 @@
 import 'package:my_nikki/screens/authentication/header.dart';
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:my_nikki/screens/widgets/fields.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:my_nikki/screens/widgets/snack_bar.dart';
-import 'package:my_nikki/utils/api.dart';
+import 'package:my_nikki/utils/secure_storage.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/validate.dart';
 import 'package:my_nikki/utils/redirect.dart';
 import 'package:my_nikki/utils/colors.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
+import 'package:http/http.dart';
 import 'dart:convert';
 
 class Login extends StatefulWidget {
@@ -47,39 +46,53 @@ class _LoginScreenState extends State<Login> {
       GoogleAuthProvider googleAuthProvider = GoogleAuthProvider();
       final UserCredential userCredential =
           await _auth.signInWithProvider(googleAuthProvider);
-      int statusCode = await handleGoogleAuth(userCredential);
-      Logger().i("Status code: $statusCode");
+
+      Map<String, dynamic> data = {
+        "idToken": await userCredential.user!.getIdToken(),
+      };
+
+      Response response = await genericPost("/auth/google_login", data);
+
+      var decodedResponse = jsonDecode(response.body);
+      String token = decodedResponse['token'];
+      if (response.statusCode == 200) {
+        await SecureStorage().writeToken(token);
+        return redirectTo(context, '/home');
+      } else if (response.statusCode == 400) {
+        showSnackBar(context, "Google account not signed up.", Colors.red);
+        return redirectTo(
+          context,
+          '/sign_up',
+        );
+      }
     } catch (error) {
-      Logger().e(error);
+      showSnackBar(context, "Error while logging.", Colors.red);
     }
   }
 
-  Future<void> sendDataToAPI() async {
+  Future<void> executeLogin() async {
     try {
-      var url = Uri.parse("${dotenv.get('BACKEND_URL')}/auth/login");
-      var data = {
+      Map<String, dynamic> data = {
         'email': _emailController.text,
-        'password': _passwordController.text,
+        'password': _passwordController.text
       };
 
-      var response = await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(data),
-      );
+      Response response = await genericPost("/auth/login", data);
       var decodedResponse = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        await SecureStorage().writeToken(decodedResponse['token']);
+
         showSnackBar(context, "Login successful!", Colors.green);
         redirectTo(context, '/home');
-      } else {
+      } else if (response.statusCode == 400) {
         if (decodedResponse["field"] == "email") {
           showSnackBar(context, "Could not find your account.", Colors.red);
         } else if (decodedResponse["field"] == "password") {
           showSnackBar(context, "Incorrect password.", Colors.red);
         }
+      } else {
+        showSnackBar(context, "Failed to login.", Colors.red);
       }
     } catch (e) {
       showSnackBar(context, "Error while logging.", Colors.red);
@@ -138,7 +151,7 @@ class _LoginScreenState extends State<Login> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      sendDataToAPI();
+      executeLogin();
     }
   }
 }

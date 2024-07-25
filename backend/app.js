@@ -7,9 +7,12 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
+import admin from "firebase-admin";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
+
+import serviceAccount from "./firebase_key.json" assert { type: "json" };
 
 /* CONFIG */
 const __filename = fileURLToPath(import.meta.url);
@@ -32,6 +35,10 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 /* ROUTES */
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 const PORT = process.env.PORT || 3001;
 mongoose

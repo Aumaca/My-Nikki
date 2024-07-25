@@ -1,13 +1,29 @@
 import bcrypt from "bcrypt";
 import jwt, { decode } from "jsonwebtoken";
 import User from "../models/User.js";
+import admin from "firebase-admin";
 
 const createToken = (user) => {
-  return jwt.sign({ userID: user.id }, process.env.JWT_SECRET);
+  return jwt.sign({ userID: user.id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
 };
 
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, await bcrypt.genSalt());
+};
+
+const returnToken = async ({ user, req, res }) => {
+  try {
+    if (user) {
+      const token = createToken(user);
+      return res.status(200).json({ token });
+    } else {
+      throw new Error();
+    }
+  } catch (err) {
+    return res.status(400).json({ msg: "Error returning token" });
+  }
 };
 
 const saveUserAndReturnToken = async ({ user, req, res }) => {
@@ -16,151 +32,113 @@ const saveUserAndReturnToken = async ({ user, req, res }) => {
     const token = createToken(user);
     return res.status(201).json({ token });
   } catch (err) {
-    return res.status(400).json({
-      field: err.errors[Object.keys(err.errors)[0]].properties.path,
-      message: err.errors[Object.keys(err.errors)[0]].message,
-    });
+    return res.status(400).json({ msg: "Error saving and returning token" });
+  }
+};
+export const checkToken = async (req, res) => {
+  const { token } = req.body;
+  const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
+  if (verifiedToken) {
+    return res.status(200).json();
+  } else {
+    return res.status(400).json({ msg: "Invalid JWT token" });
   }
 };
 
-/* REGISTER USER */
-// If email is already in use and has no UID defined, return 400
-// Create/update user and save, returning 201 and token
+/* REGISTER */
 export const register = async (req, res) => {
   try {
-    const { email, password, name, country } = req.body;
+    const { uid, email, password, name, country } = req.body;
 
     const signedUpUser = await User.findOne({ email: email });
-    if (signedUpUser) {
-      if (signedUpUser.uid) {
-        signedUpUser.name = name;
-        signedUpUser.country = country;
-        saveUserAndReturnToken({ user: signedUpUser, req, res });
-      } else {
-        return res.status(400).json({ msg: "Email already in use." });
-      }
-    }
 
-    const newUser = new User({
+    if (signedUpUser)
+      return res.status(400).json({ msg: "Email already in use." });
+
+    const user = new User({
+      uid,
       email,
       name,
       country,
-      password: await hashPassword(password),
-      createdAt: new Date().toUTCString(),
+      password: uid ? null : await hashPassword(password),
+      createdAt: new Date().toLocaleDateString("en-US"),
     });
 
-    saveUserAndReturnToken({ user: newUser, req, res });
+    saveUserAndReturnToken({ user, req, res });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
 
-/* LOGGING IN */
-// If user isn't found, return 400
-// If password don't match, return 400
-// Return 200 and token
+/* LOGIN */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
+
+    if (!email || !password) {
+      return res.status(400).json({
+        msg: "No email and password provided",
+      });
+    }
+
+    let user;
+    user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ field: "email" });
     }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({
         field: "password",
       });
     }
-
-    const token = createToken(user);
-    return res.status(200).json({ token: token });
+    return returnToken({ user, req, res });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
 
-/* GOOGLE AUTH */
-// If is new user, save in DB and return 201
-// If is not a new user, check if email is saved and check if profile is completed
-//  - if it is, returns 200 and token
-//  - if not, returns 201
-// Returns 400 or 500 to errors
-export const googleAuth = async (req, res) => {
+export const googleLogin = async (req, res) => {
   try {
-    const { uid, email, photoURL, isNewUser, name, country } = req.body;
+    const { idToken } = req.body;
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
 
-    if (isNewUser) {
-      try {
-        const newUser = new User({
-          uid,
-          email,
-          photoURL,
-          createdAt: new Date().toUTCString(),
-          isComplete: false,
-        });
-        const savedUser = await newUser.save();
-        if (savedUser) {
-          return res.status(201).json();
-        } else {
-          return res.status(400).json();
-        }
-      } catch (err) {
-        return res.status(400).json({
-          field: err.errors[Object.keys(err.errors)[0]].properties.path,
-          message: err.errors[Object.keys(err.errors)[0]].message,
-        });
-      }
+    const user = await User.findOne({ uid: uid });
+    if (user) {
+      return returnToken({ user, req, res });
     } else {
-      const user = await User.findOne({ uid });
-
-      if (!user) {
-        return res.status(400).json({
-          field: "email",
-          message: "User is not new but theres no register...?",
-        });
-      } else if (user.isComplete) {
-        const token = createToken(user);
-        return res.status(200).json({ token });
-      } else {
-        user.name = name;
-        user.country = country;
-        user.isComplete = true;
-        try {
-          await User.findByIdAndUpdate(user.id, user);
-          const token = createToken(user);
-          return res.status(201).json({ token });
-        } catch (err) {
-          return res.status(400).json({
-            field: err.errors[Object.keys(err.errors)[0]].properties.path,
-            message: err.errors[Object.keys(err.errors)[0]].message,
-          });
-        }
-      }
+      return res.status(400).json();
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+  } catch (e) {
+    res.status(401).send("Invalid Firebase ID token");
   }
 };
 
-// GOOGLE AUTH
-//  - gets data and send to backend
-//  - backend checks if is a new user
-//    - if yes, save data and returns 201 to continue signing up
-//    - else
-//      - if isComplete, return 200 and token
-//      - else, return 201 to continue to signing up
-//
-// REGISTER
-//   - checks if email is already in use
-//     - if yes
-//       - if has uid because of google, continue
-//       - else, return 400 and message
-//     - else, continue
-//   - save and return 201 and token (CAUTION)
-//
-// LOGIN
-//   - checks if user exist
-//     - If yes, return 200 and token
-//     - else, return 400 and message
+export const googleRegister = async (req, res) => {
+  try {
+    const { idToken, email, name, country } = req.body;
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    const user = await User.findOne({ uid: uid });
+    if (!user) {
+      const newUser = new User({
+        uid,
+        email,
+        name,
+        country,
+        password: null,
+        createdAt: new Date().toLocaleDateString("en-US"),
+      });
+
+      await newUser.save();
+
+      return saveUserAndReturnToken({ user, req, res });
+    } else {
+      return res.status(400).json({ msg: "User already signed up" });
+    }
+  } catch (e) {
+    res.status(401).send("Invalid Firebase ID token");
+  }
+};

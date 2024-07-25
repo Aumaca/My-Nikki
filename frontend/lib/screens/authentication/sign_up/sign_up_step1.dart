@@ -6,17 +6,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_nikki/utils/redirect.dart';
 import 'package:my_nikki/utils/validate.dart';
 import 'package:my_nikki/utils/colors.dart';
-import 'package:my_nikki/utils/api.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 class SignUpStep1 extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final VoidCallback googleSignUp;
   final VoidCallback onNext;
   final _formKey = GlobalKey<FormState>();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final User? _user = null;
 
   SignUpStep1({
@@ -24,28 +21,8 @@ class SignUpStep1 extends StatelessWidget {
     required this.emailController,
     required this.passwordController,
     required this.onNext,
+    required this.googleSignUp,
   });
-
-  void _handleGoogleSignUp(BuildContext context) async {
-    try {
-      GoogleAuthProvider googleAuthProvider = GoogleAuthProvider();
-      final UserCredential userCredential =
-          await _auth.signInWithProvider(googleAuthProvider);
-      int statusCode = await handleGoogleAuth(userCredential);
-      Logger().i("Status code: $statusCode");
-
-      // Logged in
-      if (statusCode == 200) {
-        redirectTo(context, "home");
-      } else if (statusCode == 201) {
-        emailController.text = userCredential.user!.email!;
-        passwordController.text = ".";
-        onNext();
-      }
-    } catch (error) {
-      Logger().e(error);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +54,9 @@ class SignUpStep1 extends StatelessWidget {
                 const SizedBox(height: 32),
                 SignInButton(
                   Buttons.google,
-                  text: "Login with Google",
+                  text: "Sign up with Google",
                   onPressed: () {
-                    _handleGoogleSignUp(context);
+                    googleSignUp();
                   },
                 ),
               ],

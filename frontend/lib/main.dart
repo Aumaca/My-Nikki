@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up.dart';
 import 'package:my_nikki/screens/splash/splash.dart';
 import 'package:my_nikki/screens/authentication/login.dart';
@@ -17,11 +18,15 @@ void main() async {
   // Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(MyApp());
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: AppColors.secondaryColor,
+  ));
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override

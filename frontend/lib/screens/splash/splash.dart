@@ -1,6 +1,7 @@
-import "package:flutter/material.dart";
-import "package:my_nikki/utils/colors.dart";
+import "package:my_nikki/utils/secure_storage.dart";
 import "package:my_nikki/utils/requests.dart";
+import "package:my_nikki/utils/colors.dart";
+import "package:flutter/material.dart";
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,12 +18,24 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuthStatus() async {
-    bool isAuthenticated = await isTokenValid();
-    if (isAuthenticated) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      Navigator.pushReplacementNamed(context, '/login');
+    String? token = await SecureStorage().readToken();
+
+    if (token == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/login');
+      });
+      return;
     }
+
+    bool isAuthenticated = await isTokenValid();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isAuthenticated) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    });
   }
 
   @override
