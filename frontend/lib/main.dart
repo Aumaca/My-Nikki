@@ -5,6 +5,7 @@ import 'package:my_nikki/screens/authentication/login.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:my_nikki/screens/home/home.dart';
+import 'package:my_nikki/screens/widgets/new_entry.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const Login(),
           '/sign_up': (context) => const SignUp(),
           '/home': (context) => const Homepage(),
+          '/newEntry': (context) => const NewEntryForm(),
         });
   }
 }

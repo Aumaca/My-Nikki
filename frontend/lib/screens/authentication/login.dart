@@ -7,7 +7,6 @@ import 'package:sign_in_button/sign_in_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/validate.dart';
-import 'package:my_nikki/utils/redirect.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -57,13 +56,12 @@ class _LoginScreenState extends State<Login> {
       String token = decodedResponse['token'];
       if (response.statusCode == 200) {
         await SecureStorage().writeToken(token);
-        return redirectTo(context, '/home');
+        Navigator.pushNamed(context, '/home');
+        return;
       } else if (response.statusCode == 400) {
         showSnackBar(context, "Google account not signed up.", Colors.red);
-        return redirectTo(
-          context,
-          '/sign_up',
-        );
+        Navigator.pushNamed(context, '/sign_up');
+        return;
       }
     } catch (error) {
       showSnackBar(context, "Error while logging.", Colors.red);
@@ -84,7 +82,8 @@ class _LoginScreenState extends State<Login> {
         await SecureStorage().writeToken(decodedResponse['token']);
 
         showSnackBar(context, "Login successful!", Colors.green);
-        redirectTo(context, '/home');
+        Navigator.pushNamed(context, '/home');
+        return;
       } else if (response.statusCode == 400) {
         if (decodedResponse["field"] == "email") {
           showSnackBar(context, "Could not find your account.", Colors.red);
@@ -128,7 +127,7 @@ class _LoginScreenState extends State<Login> {
                         "Login"),
                     buildElevatedButton(
                         context,
-                        () => redirectTo(context, '/sign_up'),
+                        () => Navigator.pushNamed(context, '/sign_up'),
                         AppColors.secondaryColor,
                         "or sign up"),
                     const SizedBox(height: 32),

@@ -1,17 +1,16 @@
-import 'package:http/http.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up_step1.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up_step2.dart';
 import 'package:my_nikki/screens/widgets/snack_bar.dart';
-import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:my_nikki/utils/redirect.dart';
+import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:logger/logger.dart';
+import 'package:http/http.dart';
+import 'dart:convert';
 
 class SignUp extends StatefulWidget {
   final UserCredential? userCredential;
@@ -88,7 +87,8 @@ class SignUpState extends State<SignUp> {
             await SecureStorage().writeToken(decodedResponse['token']);
         if (stored) {
           showSnackBar(context, "Sign up successful!", Colors.green);
-          redirectTo(context, '/home');
+          Navigator.pushNamed(context, '/home');
+          return;
         }
       } else {
         showSnackBar(context, "Error while signing up.", Colors.red);
@@ -114,7 +114,7 @@ class SignUpState extends State<SignUp> {
             await SecureStorage().writeToken(decodedResponse['token']);
         if (stored) {
           showSnackBar(context, "Sign up successful!", Colors.green);
-          redirectTo(context, '/home');
+          Navigator.pushNamed(context, '/home');
         }
       } else {
         showSnackBar(context, "Error while signing up.",

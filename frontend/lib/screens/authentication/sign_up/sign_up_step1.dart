@@ -3,7 +3,6 @@ import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:my_nikki/screens/widgets/fields.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:my_nikki/utils/redirect.dart';
 import 'package:my_nikki/utils/validate.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +47,7 @@ class SignUpStep1 extends StatelessWidget {
                     "Next"),
                 buildElevatedButton(
                     context,
-                    () => redirectTo(context, '/login'),
+                    () => Navigator.pushNamed(context, '/login'),
                     AppColors.secondaryColor,
                     "or login"),
                 const SizedBox(height: 32),
