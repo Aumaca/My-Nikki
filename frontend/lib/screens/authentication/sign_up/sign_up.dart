@@ -149,6 +149,7 @@ class SignUpState extends State<SignUp> {
           SignUpStep2(
             nameController: _nameController,
             selectedCountry: _selectedCountry,
+            // ignore: void_checks
             onChange: (newCountry) {
               setState(() {
                 if (newCountry != null) {

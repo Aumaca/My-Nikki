@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 
 Widget buildDropdown(
-    String selectedItem, ValueChanged<String?> onChange, List<String> items) {
+    String selectedItem, void Function(String?) onChange, List<String> items) {
   return DropdownButtonFormField<String>(
     value: selectedItem,
     onChanged: onChange,

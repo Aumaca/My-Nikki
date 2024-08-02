@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class SignUpStep2 extends StatelessWidget {
   final TextEditingController nameController;
   final String selectedCountry;
-  final ValueChanged<String?> onChange;
+  final void Function(String?) onChange;
   final VoidCallback onPrevious;
   final VoidCallback onSubmit;
   final _formKey = GlobalKey<FormState>();
