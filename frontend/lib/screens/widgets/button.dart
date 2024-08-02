@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-ElevatedButton buildElevatedButton(BuildContext context, void Function() action,
-    Color backgroundColor, String buttonText) {
+ElevatedButton buildElevatedButton(
+    BuildContext context, void Function() action, Color backgroundColor,
+    {String? text, IconData? icon}) {
   return ElevatedButton(
     onPressed: action,
     style: ElevatedButton.styleFrom(
@@ -11,15 +12,34 @@ ElevatedButton buildElevatedButton(BuildContext context, void Function() action,
       ),
     ),
     child: Center(
-      child: Text(
-        buttonText,
-        style: const TextStyle(
-          fontSize: 20,
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
+      child: text != null
+          ? Text(
+              text,
+              style: const TextStyle(
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            )
+          : Icon(
+              icon,
+              color: Colors.white,
+              size: 32,
+            ),
+    ),
+  );
+}
+
+FloatingActionButton customFloatingActionButton(
+    void Function() action, Color backgroundColor, IconData icon) {
+  return FloatingActionButton(
+    onPressed: action,
+    backgroundColor: backgroundColor,
+    child: Icon(
+      icon,
+      color: Colors.white,
+      size: 32,
     ),
   );
 }

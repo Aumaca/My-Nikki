@@ -96,13 +96,14 @@ class SignUpStep2 extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    buildElevatedButton(context, onPrevious,
-                        AppColors.primaryColor, "Previous"),
+                    buildElevatedButton(
+                        context, onPrevious, AppColors.primaryColor,
+                        text: "Previous"),
                     buildElevatedButton(
                         context,
                         () => validateAndPass(_formKey, onSubmit),
                         AppColors.primaryColor,
-                        "Next"),
+                        text: "Next"),
                   ],
                 ),
               ],

@@ -1,5 +1,6 @@
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
+import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -20,7 +21,6 @@ class _MapState extends State<CustomMap> {
   final TextEditingController _addressController = TextEditingController();
   final MapController _mapController = MapController();
   LatLng? _selectedCoordinates;
-  String _errorMessage = '';
 
   void _onTap(LatLng position) {
     setState(() {
@@ -33,9 +33,7 @@ class _MapState extends State<CustomMap> {
       widget.onCoordinatesSelected(_selectedCoordinates!);
       Navigator.of(context).pop();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a location on the map')),
-      );
+      showSnackBar(context, 'Please select a location on the map', Colors.red);
     }
   }
 
@@ -55,17 +53,8 @@ class _MapState extends State<CustomMap> {
         setState(() {
           _selectedCoordinates = latLng;
           _mapController.move(latLng, 15);
-          _errorMessage = '';
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'No results found for this address';
         });
       }
-    } else {
-      setState(() {
-        _errorMessage = 'Failed to get address. Please try again.';
-      });
     }
   }
 
@@ -109,8 +98,7 @@ class _MapState extends State<CustomMap> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(
-                  37.7749, -122.4194), // Example coordinates (San Francisco)
+              initialCenter: const LatLng(37.7749, -122.4194),
               initialZoom: 10,
               onTap: (tapPosition, point) => _onTap(point),
             ),
@@ -136,13 +124,10 @@ class _MapState extends State<CustomMap> {
             ],
           ),
           Positioned(
-            bottom: 20,
-            right: 20,
-            child: ElevatedButton(
-              onPressed: _sendCoordinates,
-              child: const Text('Send Coordinates'),
-            ),
-          ),
+              bottom: 50,
+              right: 20,
+              child: customFloatingActionButton(
+                  _sendCoordinates, Colors.green[400]!, Icons.check))
         ],
       ),
     );

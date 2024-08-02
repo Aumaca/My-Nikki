@@ -124,12 +124,12 @@ class _LoginScreenState extends State<Login> {
                         context,
                         () => validateAndPass(_formKey, _submitForm),
                         AppColors.primaryColor,
-                        "Login"),
+                        text: "Login"),
                     buildElevatedButton(
                         context,
                         () => Navigator.pushNamed(context, '/sign_up'),
                         AppColors.secondaryColor,
-                        "or sign up"),
+                        text: "or sign up"),
                     const SizedBox(height: 32),
                     SignInButton(
                       Buttons.google,

@@ -44,12 +44,12 @@ class SignUpStep1 extends StatelessWidget {
                     context,
                     () => validateAndPass(_formKey, onNext),
                     AppColors.primaryColor,
-                    "Next"),
+                    text: "Next"),
                 buildElevatedButton(
                     context,
                     () => Navigator.pushNamed(context, '/login'),
                     AppColors.secondaryColor,
-                    "or login"),
+                    text: "or login"),
                 const SizedBox(height: 32),
                 SignInButton(
                   Buttons.google,

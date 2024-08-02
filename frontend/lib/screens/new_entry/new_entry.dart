@@ -1,3 +1,4 @@
+import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:my_nikki/screens/widgets/new_entry/custom_map.dart';
 import 'package:my_nikki/screens/widgets/new_entry/quill_toolbar.dart';
 import 'package:my_nikki/screens/widgets/new_entry/mood_dropdown.dart';
@@ -157,16 +158,7 @@ class _NewEntryFormState extends State<NewEntryForm> {
         ),
         floatingActionButton: Padding(
             padding: const EdgeInsets.only(bottom: 45.0),
-            child: FloatingActionButton(
-              onPressed: () {
-                saveEntry();
-                return;
-              },
-              backgroundColor: Colors.green[400],
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-              ),
-            )));
+            child: customFloatingActionButton(
+                saveEntry, Colors.green[400]!, Icons.check)));
   }
 }
