@@ -1,13 +1,22 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
+
+const { Schema } = mongoose;
+const { Types } = Schema;
+const { Decimal128, ObjectId } = Types;
+
+const LocalizationSchema = new mongoose.Schema({
+  x: { type: Decimal128, required: true },
+  y: { type: Decimal128, required: true },
+});
 
 const EntrySchema = new mongoose.Schema({
-  createdAt: { type: String },
   content: { type: String },
-  localization: { type: String },
-  tags: [{ type: String }],
   mood: { type: String },
-  user: { type: Schema.Types.ObjectId, ref: "user" },
-  media: [{ type: Schema.Types.ObjectId, ref: "media" }],
+  date: { type: Date },
+  localization: { type: LocalizationSchema },
+  tags: [{ type: String }],
+  media: [{ type: String }],
+  createdAt: { type: Date, default: Date.now },
 });
 
 const Entry = mongoose.model("Entry", EntrySchema);
