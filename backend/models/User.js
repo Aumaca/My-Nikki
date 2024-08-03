@@ -47,11 +47,12 @@ const UserSchema = new mongoose.Schema({
   country: {
     type: String,
   },
-  createdAt: {
-    type: String,
-  },
   isComplete: {
     type: Boolean,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 

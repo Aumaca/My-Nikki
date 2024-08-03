@@ -53,15 +53,21 @@ after(async function () {
 
 describe("Entry API Tests", () => {
   it("should create a new entry", (done) => {
+    const data = JSON.stringify({
+      content: "Content Test",
+      mood: "happy",
+      date: new Date().toUTCString(),
+      localization: {
+        x: 10.0,
+        y: 20.0,
+      },
+      tags: ["tag1", "tag2"],
+    });
+
     supertest(app)
       .post("/entry")
       .set("Authorization", `Bearer ${token}`)
-      .field("content", "Content Test")
-      .field("mood", "happy")
-      .field("date", new Date().toISOString())
-      .field("localization[x]", 10.0)
-      .field("localization[y]", 20.0)
-      .field("tags", JSON.stringify(["tag1", "tag2"]))
+      .field("data", data)
       .attach("media", path.join(__dirname, "entry_files/bocchi.jpg"))
       .attach("media", path.join(__dirname, "entry_files/lelouch.jpg"))
       .end((err, res) => {
