@@ -1,22 +1,21 @@
-import 'package:my_nikki/screens/widgets/button.dart';
-import 'package:my_nikki/screens/widgets/new_entry/custom_map.dart';
 import 'package:my_nikki/screens/widgets/new_entry/quill_toolbar.dart';
 import 'package:my_nikki/screens/widgets/new_entry/mood_dropdown.dart';
-import 'package:my_nikki/screens/widgets/new_entry/image_slider.dart';
 import 'package:my_nikki/screens/widgets/new_entry/quill_editor.dart';
+import 'package:my_nikki/screens/widgets/new_entry/image_slider.dart';
 import 'package:my_nikki/screens/widgets/new_entry/custom_map.dart';
 import 'package:my_nikki/screens/widgets/date_time_picker.dart';
+import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
+import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart';
 import 'dart:convert';
-
-import 'package:my_nikki/utils/requests.dart';
 
 class Mood {
   final IconData icon;
@@ -33,13 +32,41 @@ class NewEntryForm extends StatefulWidget {
 }
 
 class _NewEntryFormState extends State<NewEntryForm> {
-  final _formKey = GlobalKey<FormState>();
   final DateFormat formatter = DateFormat('d MMMM, y');
   final QuillController _entryContentController = QuillController.basic();
 
   DateTime date = DateTime.now().toUtc();
-  String? selectedMood;
+  String selectedMood = "neutral";
   List<XFile>? files;
+  LatLng? localization;
+
+  void saveEntry() async {
+    if (_entryContentController.document.toPlainText().trim().isEmpty) {
+      showSnackBar(context, "Entry's text is empty.", Colors.red[400]!);
+      return;
+    }
+
+    Map<String, dynamic> data = {
+      'content': jsonEncode(_entryContentController.document.toDelta()),
+      'mood': selectedMood,
+      'date': date.toIso8601String(),
+      'localization': {
+        'x': localization?.latitude,
+        'y': localization?.longitude,
+      },
+      'tags': ['testing', 'another'],
+    };
+
+    Response response = await genericPostEntry("/entry", data,
+        isAuthenticated: true, files: files);
+    if (response.statusCode == 201) {
+      var decodedResponse = jsonDecode(response.body);
+    } else {
+      Logger().e("Error saving entry");
+    }
+
+    return;
+  }
 
   Future<void> _pickImages() async {
     final List<XFile> selectedMedia =
@@ -49,25 +76,13 @@ class _NewEntryFormState extends State<NewEntryForm> {
     });
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      saveEntry();
-    }
+  void selectLocalization(LatLng coordinates) {
+    setState(() {
+      localization = coordinates;
+    });
   }
 
-  void saveEntry() {
-    Map<String, String> data = {
-      'content': jsonEncode(_entryContentController.document.toDelta()),
-      'mood': selectedMood!,
-      'date': date.toIso8601String(),
-    };
-
-    genericPost("/entry", data, isAuthenticated: true);
-
-    return;
-  }
-
-  void _selectMood(String newMood) {
+  void selectMood(String newMood) {
     setState(() {
       selectedMood = newMood;
     });
@@ -79,7 +94,9 @@ class _NewEntryFormState extends State<NewEntryForm> {
       builder: (context) {
         return Scaffold(
             backgroundColor: Colors.black.withOpacity(0.7),
-            body: CustomMap(onCoordinatesSelected: onCoordinatesSelected));
+            body: CustomMap(
+                initialCoordinates: localization,
+                onCoordinatesSelected: onCoordinatesSelected));
       },
     );
   }
@@ -102,7 +119,7 @@ class _NewEntryFormState extends State<NewEntryForm> {
                 child: GestureDetector(
                     onTap: () async {
                       DateTime? selectedDate =
-                          await DateTimePicker(context, date);
+                          await dateTimePicker(context, date);
                       if (selectedDate != null) {
                         setState(() {
                           date = selectedDate;
@@ -130,14 +147,12 @@ class _NewEntryFormState extends State<NewEntryForm> {
                   },
                   child: const Icon(Icons.attach_file,
                       color: Colors.white, size: 32)),
-              MoodPopupMenu(
-                onMoodSelected: _selectMood,
+              MoodDropdown(
+                onMoodSelected: selectMood,
               ),
               GestureDetector(
                 onTap: () {
-                  showMap(context, (coordinates) {
-                    Logger().i('Coordinates selected: $coordinates');
-                  });
+                  showMap(context, selectLocalization);
                 },
                 child: Icon(Icons.pin_drop, color: Colors.red[400], size: 32),
               ),

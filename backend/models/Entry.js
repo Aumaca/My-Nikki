@@ -5,8 +5,8 @@ const { Types } = Schema;
 const { Decimal128, ObjectId } = Types;
 
 const LocalizationSchema = new mongoose.Schema({
-  x: { type: Decimal128, required: true },
-  y: { type: Decimal128, required: true },
+  x: { type: Decimal128 },
+  y: { type: Decimal128 },
 });
 
 const EntrySchema = new mongoose.Schema({

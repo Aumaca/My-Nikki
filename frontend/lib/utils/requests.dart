@@ -49,49 +49,61 @@ Future<Response> genericPost(String path, Map<String, dynamic> data,
     {bool isAuthenticated = false, List<XFile>? files}) async {
   try {
     String? token = await storage.readToken();
-    var headers = <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-    };
 
+    Map<String, String> headers = {};
+    headers['Content-Type'] = 'application/json; charset=UTF-8';
     if (isAuthenticated) {
-      headers['Authorization'] = token!;
+      headers['Authorization'] = "Bearer $token";
     }
 
     var url = Uri.parse("${dotenv.get('BACKEND_URL')}$path");
 
+    var response = await http.post(
+      url,
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    return response;
+  } catch (e) {
+    throw Exception("Error making request: $e");
+  }
+}
+
+Future<Response> genericPostEntry(String path, Map<String, dynamic> data,
+    {bool isAuthenticated = false, List<XFile>? files}) async {
+  try {
+    String? token = await storage.readToken();
+    Map<String, String> headers = {};
+
+    if (isAuthenticated) {
+      headers['Authorization'] = "Bearer $token";
+    }
+
+    var url = Uri.parse("${dotenv.get('BACKEND_URL')}$path");
+    var request = http.MultipartRequest('POST', url);
+
+    request.fields['data'] = jsonEncode(data);
+
     if (files != null && files.isNotEmpty) {
-      var request = http.MultipartRequest('POST', url);
-
-      data.forEach((key, value) {
-        request.fields[key] = value.toString();
-      });
-
       for (var file in files) {
         var stream = http.ByteStream(file.openRead());
         var length = await file.length();
         var multipartFile = http.MultipartFile(
-          'files', // to change key
+          'media',
           stream,
           length,
           filename: basename(file.path),
         );
         request.files.add(multipartFile);
       }
-
-      request.headers.addAll(headers);
-
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-      return response;
-    } else {
-      // Handle normal JSON request
-      var response = await http.post(
-        url,
-        headers: headers,
-        body: jsonEncode(data),
-      );
-      return response;
     }
+
+    request.headers.addAll(headers);
+
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
+    return response;
   } catch (e) {
     throw Exception("Error making request: $e");
   }

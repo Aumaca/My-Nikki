@@ -13,7 +13,7 @@ Container imageSlider(BuildContext context, List<XFile> files) {
           int index = files.indexOf(file);
           return GestureDetector(
             onTap: () => showFullScreenImages(context, files, index),
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width /
                   (files.length < 3 ? files.length : 3),
               child: Image.file(

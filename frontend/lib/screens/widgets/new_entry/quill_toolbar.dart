@@ -17,7 +17,8 @@ class _CustomQuillToolbarState extends State<CustomQuillToolbar> {
   @override
   Widget build(BuildContext context) {
     return QuillSimpleToolbar(
-        configurations: QuillSimpleToolbarConfigurations(
-            controller: widget.contentController, multiRowsDisplay: false));
+        controller: widget.contentController,
+        configurations:
+            const QuillSimpleToolbarConfigurations(multiRowsDisplay: false));
   }
 }

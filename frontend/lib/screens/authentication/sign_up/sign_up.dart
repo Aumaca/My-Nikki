@@ -2,11 +2,9 @@ import 'package:my_nikki/screens/authentication/sign_up/sign_up_step1.dart';
 import 'package:my_nikki/screens/authentication/sign_up/sign_up_step2.dart';
 import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/utils/secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/colors.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart';
@@ -63,8 +61,8 @@ class SignUpState extends State<SignUp> {
         _passwordController.text = "*";
       });
       _nextPage();
-    } catch (error) {
-      Logger().e(error);
+    } catch (e) {
+      Logger().e(e);
     }
   }
 
@@ -85,12 +83,12 @@ class SignUpState extends State<SignUp> {
         var decodedResponse = jsonDecode(response.body);
         bool stored =
             await SecureStorage().writeToken(decodedResponse['token']);
-        if (stored) {
+        if (stored && mounted) {
           showSnackBar(context, "Sign up successful!", Colors.green);
           Navigator.pushNamed(context, '/home');
           return;
         }
-      } else {
+      } else if (mounted) {
         showSnackBar(context, "Error while signing up.", Colors.red);
       }
     } catch (e) {
@@ -112,11 +110,11 @@ class SignUpState extends State<SignUp> {
         var decodedResponse = jsonDecode(response.body);
         bool stored =
             await SecureStorage().writeToken(decodedResponse['token']);
-        if (stored) {
+        if (stored && mounted) {
           showSnackBar(context, "Sign up successful!", Colors.green);
           Navigator.pushNamed(context, '/home');
         }
-      } else {
+      } else if (mounted) {
         showSnackBar(context, "Error while signing up.",
             const Color.fromARGB(255, 0, 0, 0));
       }

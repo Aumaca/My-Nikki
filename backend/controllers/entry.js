@@ -8,6 +8,8 @@ export const createEntry = async (req, res) => {
   const session = await startSession();
   session.startTransaction();
 
+  let filePaths = [];
+
   try {
     const userID = req.userID;
     const user = await User.findById(userID).select("-password");
@@ -16,21 +18,28 @@ export const createEntry = async (req, res) => {
       return res.status(400).json({ msg: "User was not found" });
     }
 
-    const { content, mood, date, localization, tags } = req.body;
+    const { content, mood, date, localization, tags } = JSON.parse(
+      req.body.data
+    );
 
     const newEntry = new Entry({
       content,
       mood,
       date: new Date(date),
-      localization: {
-        x: localization.x,
-        y: localization.y,
-      },
-      tags: JSON.parse(tags),
+      localization: localization
+        ? {
+            x: localization.x,
+            y: localization.y,
+          }
+        : null,
+      tags: tags ? tags : null,
     });
 
     if (req.files && req.files.length > 0) {
-      handleMedia(req, newEntry); // Add files in the entry media array
+      filePaths = req.files.map((file) => {
+        const filePath = path.join("uploads", file.filename);
+        newEntry.media.push(filePath);
+      });
     }
 
     const savedEntry = await newEntry.save({ session });
@@ -49,14 +58,14 @@ export const createEntry = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
+    filePaths ??
+      filePaths.forEach((filePath) => {
+        fs.unlink(filePath, (err) => {
+          if (err) console.error(`Error deleting file: ${filePath}`, err);
+        });
+      });
+
     console.error(e);
     return res.status(500).json({ msg: "Error creating entry." });
   }
-};
-
-const handleMedia = (req, newEntry) => {
-  req.files.map((file) => {
-    const filePath = path.join("uploads", file.filename);
-    newEntry.media.push(filePath);
-  });
 };

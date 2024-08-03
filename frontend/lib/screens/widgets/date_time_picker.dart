@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:my_nikki/utils/colors.dart";
 
-Future<DateTime?> DateTimePicker(BuildContext context, DateTime initialDate,
+Future<DateTime?> dateTimePicker(BuildContext context, DateTime initialDate,
     {DateTime? firstDate, DateTime? lastDate}) async {
   return await showDatePicker(
     context: context,

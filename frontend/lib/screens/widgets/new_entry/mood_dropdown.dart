@@ -2,17 +2,17 @@ import 'package:my_nikki/screens/new_entry/new_entry.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 
-class MoodPopupMenu extends StatefulWidget {
+class MoodDropdown extends StatefulWidget {
   final Function(String) onMoodSelected;
 
-  const MoodPopupMenu({super.key, required this.onMoodSelected});
+  const MoodDropdown({super.key, required this.onMoodSelected});
 
   @override
-  _MoodPopupMenuState createState() => _MoodPopupMenuState();
+  MoodDropdownState createState() => MoodDropdownState();
 }
 
-class _MoodPopupMenuState extends State<MoodPopupMenu> {
-  String _selectedItem = 'Neutral';
+class MoodDropdownState extends State<MoodDropdown> {
+  String _selectedItem = 'neutral';
   IconData _currentIcon = Icons.sentiment_neutral;
   Color _currentColor = Colors.yellow;
   Map<String, Mood> moods = {
@@ -55,6 +55,7 @@ class _MoodPopupMenuState extends State<MoodPopupMenu> {
       offset: const Offset(0, 10),
       icon: Icon(_currentIcon, color: _currentColor, size: 32),
       onSelected: _handleMoodSelection,
+      color: Colors.white,
       itemBuilder: (BuildContext context) {
         return moods.entries
             .map<PopupMenuEntry<String>>((MapEntry<String, Mood> entry) {

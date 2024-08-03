@@ -2,7 +2,6 @@ import 'package:my_nikki/screens/authentication/header.dart';
 import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:my_nikki/screens/widgets/fields.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_nikki/utils/validate.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ class SignUpStep1 extends StatelessWidget {
   final VoidCallback googleSignUp;
   final VoidCallback onNext;
   final _formKey = GlobalKey<FormState>();
-  final User? _user = null;
 
   SignUpStep1({
     super.key,

@@ -58,7 +58,6 @@ class _HomepageState extends State<Homepage> {
             } else if (!snapshot.hasData) {
               return const Center(child: Text('No user data available.'));
             } else {
-              final user = snapshot.data!;
               return Column(
                 children: [
                   Expanded(

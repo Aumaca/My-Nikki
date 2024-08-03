@@ -16,15 +16,16 @@ class Login extends StatefulWidget {
   const Login({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<Login> {
+class LoginScreenState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  // ignore: unused_field
   User? _user;
 
   String? emailErrorMessage;
@@ -56,15 +57,19 @@ class _LoginScreenState extends State<Login> {
       String token = decodedResponse['token'];
       if (response.statusCode == 200) {
         await SecureStorage().writeToken(token);
-        Navigator.pushNamed(context, '/home');
-        return;
+        if (mounted) {
+          Navigator.pushNamed(context, '/home');
+        }
       } else if (response.statusCode == 400) {
-        showSnackBar(context, "Google account not signed up.", Colors.red);
-        Navigator.pushNamed(context, '/sign_up');
-        return;
+        if (mounted) {
+          showSnackBar(context, "Google account not signed up.", Colors.red);
+          Navigator.pushNamed(context, '/sign_up');
+        }
       }
     } catch (error) {
-      showSnackBar(context, "Error while logging.", Colors.red);
+      if (mounted) {
+        showSnackBar(context, "Error while logging.", Colors.red);
+      }
     }
   }
 
@@ -80,21 +85,27 @@ class _LoginScreenState extends State<Login> {
 
       if (response.statusCode == 200) {
         await SecureStorage().writeToken(decodedResponse['token']);
-
-        showSnackBar(context, "Login successful!", Colors.green);
-        Navigator.pushNamed(context, '/home');
-        return;
+        if (mounted) {
+          showSnackBar(context, "Login successful!", Colors.green);
+          Navigator.pushNamed(context, '/home');
+        }
       } else if (response.statusCode == 400) {
-        if (decodedResponse["field"] == "email") {
-          showSnackBar(context, "Could not find your account.", Colors.red);
-        } else if (decodedResponse["field"] == "password") {
-          showSnackBar(context, "Incorrect password.", Colors.red);
+        if (mounted) {
+          if (decodedResponse["field"] == "email") {
+            showSnackBar(context, "Could not find your account.", Colors.red);
+          } else if (decodedResponse["field"] == "password") {
+            showSnackBar(context, "Incorrect password.", Colors.red);
+          }
         }
       } else {
-        showSnackBar(context, "Failed to login.", Colors.red);
+        if (mounted) {
+          showSnackBar(context, "Failed to login.", Colors.red);
+        }
       }
     } catch (e) {
-      showSnackBar(context, "Error while logging.", Colors.red);
+      if (mounted) {
+        showSnackBar(context, "Error while logging.", Colors.red);
+      }
     }
   }
 

@@ -17,9 +17,9 @@ class _CustomQuillEditorState extends State<CustomQuillEditor> {
   @override
   Widget build(BuildContext context) {
     return QuillEditor.basic(
-        configurations: QuillEditorConfigurations(
-            controller: widget.contentController,
-            customStyles: const DefaultStyles(
+        controller: widget.contentController,
+        configurations: const QuillEditorConfigurations(
+            customStyles: DefaultStyles(
                 color: Colors.white,
                 paragraph: DefaultTextBlockStyle(
                     TextStyle(color: Colors.white, fontSize: 16),

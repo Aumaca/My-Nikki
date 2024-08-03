@@ -9,18 +9,28 @@ import 'dart:convert';
 import 'package:my_nikki/utils/colors.dart';
 
 class CustomMap extends StatefulWidget {
+  final LatLng? initialCoordinates;
   final Function(LatLng) onCoordinatesSelected;
 
-  const CustomMap({super.key, required this.onCoordinatesSelected});
+  const CustomMap(
+      {super.key,
+      this.initialCoordinates,
+      required this.onCoordinatesSelected});
 
   @override
-  _MapState createState() => _MapState();
+  CustomMapState createState() => CustomMapState();
 }
 
-class _MapState extends State<CustomMap> {
+class CustomMapState extends State<CustomMap> {
   final TextEditingController _addressController = TextEditingController();
   final MapController _mapController = MapController();
   LatLng? _selectedCoordinates;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCoordinates = widget.initialCoordinates;
+  }
 
   void _onTap(LatLng position) {
     setState(() {
@@ -98,7 +108,9 @@ class _MapState extends State<CustomMap> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(37.7749, -122.4194),
+              initialCenter: _selectedCoordinates != null
+                  ? _selectedCoordinates!
+                  : const LatLng(37.7749, -122.4194),
               initialZoom: 10,
               onTap: (tapPosition, point) => _onTap(point),
             ),

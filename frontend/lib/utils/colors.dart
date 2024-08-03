@@ -17,6 +17,6 @@ class MoodColors {
   static const Color sad = Colors.blue; // 1. Sad (subdued)
   static const Color neutral = Colors.grey; // 2. Neutral (balanced)
   static const Color calm = Colors.green; // 3. Calm (soothing)
-  static const Color excited = Colors.orange; // 4. Excited (energetic)
-  static const Color happy = Colors.yellow; // 5. Happy (cheerful)
+  static Color happy = Colors.yellow[600]!; // 4. Happy (cheerful)
+  static const Color excited = Colors.orange; // 5. Excited (energetic)
 }

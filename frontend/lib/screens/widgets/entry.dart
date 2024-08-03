@@ -27,32 +27,32 @@ class _EntryState extends State<Entry> {
                   borderRadius: BorderRadius.circular(16.0)),
             ),
             const SizedBox(width: 16.0),
-            const Expanded(
+            Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     '12:00h',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16.0,
                     ),
                   ),
-                  SizedBox(height: 6.0),
-                  Text(
+                  const SizedBox(height: 6.0),
+                  const Text(
                       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce vitae malesuada elit, ut malesuada eros. Donec ut metus mattis urna scelerisque rutrum id.",
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis),
-                  SizedBox(height: 12.0),
+                  const SizedBox(height: 12.0),
                   Row(
                     children: [
                       Icon(
                         Icons.sentiment_satisfied,
                         color: MoodColors.happy,
                       ),
-                      SizedBox(width: 8.0),
-                      Text(
+                      const SizedBox(width: 8.0),
+                      const Text(
                         'Rua xxx, yyyy',
                         style: TextStyle(
                           fontSize: 16.0,
