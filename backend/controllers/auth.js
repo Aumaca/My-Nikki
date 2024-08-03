@@ -55,10 +55,18 @@ export const register = async (req, res) => {
     if (signedUpUser)
       return res.status(400).json({ msg: "Email already in use." });
 
+    const capitalizedName = name
+      .split(" ")
+      .map(
+        (slicedName) =>
+          slicedName.charAt(0).toUpperCase() + slicedName.slice(1).toLowerCase()
+      )
+      .join(" ");
+
     const user = new User({
       uid,
-      email,
-      name,
+      email: email.toLowerCase(),
+      name: capitalizedName,
       country,
       password: uid ? null : await hashPassword(password),
       createdAt: new Date().toLocaleDateString("en-US"),
@@ -81,8 +89,7 @@ export const login = async (req, res) => {
       });
     }
 
-    let user;
-    user = await User.findOne({ email });
+    const user = await User.findOne({ email: new RegExp(email, "i") });
     if (!user) {
       return res.status(400).json({ field: "email" });
     }
@@ -92,6 +99,7 @@ export const login = async (req, res) => {
         field: "password",
       });
     }
+
     return returnToken({ user, req, res });
   } catch (err) {
     return res.status(500).json({ error: err.message });

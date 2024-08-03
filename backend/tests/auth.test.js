@@ -1,8 +1,7 @@
-import { expect } from "chai";
-import supertest from "supertest";
-import mongoose from "mongoose";
-import app from "../app.js";
 import User from "../models/User.js";
+import supertest from "supertest";
+import { expect } from "chai";
+import app from "../app.js";
 
 let token = "";
 
