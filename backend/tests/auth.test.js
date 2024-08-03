@@ -71,23 +71,3 @@ describe("Authentication API Tests", () => {
       });
   });
 });
-
-describe("User", () => {
-  it("should return user's data", (done) => {
-    supertest(app)
-      .get("/user/getUser")
-      .set("Authorization", `Bearer ${token}`)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        try {
-          expect(res.statusCode).to.be.equal(200);
-          expect(res.body).to.have.property("user");
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-  });
-});

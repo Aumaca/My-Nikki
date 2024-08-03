@@ -56,10 +56,6 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.methods.entriesCounter = function (cb) {
-  return this.entries.length();
-};
-
 UserSchema.methods.moodCounter = function (cb) {
   const moodCounter = {
     joyful: 0,

@@ -1,3 +1,9 @@
+import {
+  removeFiles,
+  createEntry,
+  createUser,
+  loginUser,
+} from "../utils/tests.js";
 import Entry from "../models/Entry.js";
 import User from "../models/User.js";
 import { fileURLToPath } from "url";
@@ -5,28 +11,28 @@ import supertest from "supertest";
 import { expect } from "chai";
 import app from "../app.js";
 import path from "path";
-import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const filenames = [];
 
 let token = "";
 
 before(async function () {
   try {
-    await supertest(app).post("/auth/register").send({
+    // Create user
+    await createUser({
       email: "entrytestuser@example.com",
       password: "password123",
       name: "Test User",
       country: "Test Country",
     });
 
-    const res = await supertest(app).post("/auth/login").send({
+    // Login user
+    token = await loginUser({
       email: "entrytestuser@example.com",
       password: "password123",
     });
-
-    token = res.body.token;
   } catch (err) {
     console.error("Error during login of user for test purposes: ", err);
   }
@@ -35,51 +41,35 @@ before(async function () {
 after(async function () {
   try {
     await User.deleteOne({ email: "entrytestuser@example.com" });
-    await Entry.deleteMany({ content: "Content Test" });
+    await Entry.deleteMany({ content: "Entry Test1" });
 
-    const uploadDir = path.join(__dirname, "../uploads");
-    fs.readdir(uploadDir, (err, files) => {
-      if (err) throw err;
-      for (const file of files) {
-        fs.unlink(path.join(uploadDir, file), (err) => {
-          if (err) throw err;
-        });
-      }
-    });
+    removeFiles(__dirname, filenames);
   } catch (err) {
     console.error("Error during cleanup of files: ", err);
   }
 });
 
 describe("Entry API Tests", () => {
-  it("should create a new entry", (done) => {
-    const data = JSON.stringify({
-      content: "Content Test",
-      mood: "happy",
-      date: new Date().toUTCString(),
-      localization: {
-        x: 10.0,
-        y: 20.0,
+  it("should create a new entry", async () => {
+    const res = await createEntry(
+      token,
+      {
+        content: "Entry Test1",
+        mood: "happy",
+        date: new Date().toUTCString(),
+        localization: {
+          x: 10.0,
+          y: 20.0,
+        },
+        tags: ["tag1", "tag2"],
       },
-      tags: ["tag1", "tag2"],
-    });
+      ["entry_files/bocchi.jpg", "entry_files/lelouch.jpg"],
+      __dirname,
+      null
+    );
 
-    supertest(app)
-      .post("/entry")
-      .set("Authorization", `Bearer ${token}`)
-      .field("data", data)
-      .attach("media", path.join(__dirname, "entry_files/bocchi.jpg"))
-      .attach("media", path.join(__dirname, "entry_files/lelouch.jpg"))
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        try {
-          expect(res.statusCode).to.equal(201);
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
+    expect(res.statusCode).to.equal(201);
+    const { media } = res.body;
+    media.forEach((file) => filenames.push(file.split("\\")[1]));
   });
 });

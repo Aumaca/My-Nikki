@@ -50,7 +50,7 @@ export const register = async (req, res) => {
   try {
     const { uid, email, password, name, country } = req.body;
 
-    const signedUpUser = await User.findOne({ email: email });
+    const signedUpUser = await User.findOne({ email: email.toLowerCase() });
 
     if (signedUpUser)
       return res.status(400).json({ msg: "Email already in use." });
@@ -89,7 +89,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email: new RegExp(email, "i") });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ field: "email" });
     }
