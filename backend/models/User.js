@@ -35,9 +35,6 @@ const UserSchema = new mongoose.Schema({
   photoURL: {
     type: String,
   },
-  photoFile: {
-    type: String,
-  },
   entries: [
     {
       type: mongoose.Schema.Types.ObjectId,

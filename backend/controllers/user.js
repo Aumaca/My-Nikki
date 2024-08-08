@@ -4,7 +4,12 @@ export const getUser = async (req, res) => {
   const userID = req.userID;
   const user = await User.findById(userID)
     .select("-password")
-    .populate("entries");
+    .populate({
+      path: "entries",
+      options: {
+        sort: { date: -1 },
+      },
+    });
   if (user) {
     const userObj = user.toObject();
 

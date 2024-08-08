@@ -83,14 +83,41 @@ export const updateEntry = async (req, res) => {
     }
 
     const entryID = req.params.entryID;
-    const entry = user.entries.find((entry) => entry == entryID);
-    if (!entry) {
+    const userHasEntry = user.entries.find((entry) => entry == entryID);
+    const entry = await Entry.findById(entryID);
+    if (!userHasEntry || !entry) {
       return res.status(400).json({ msg: "Entry was not found" });
     }
 
-    const { content, mood, date, localization, tags } = JSON.parse(
-      req.body.data
-    );
+    const { content, mood, date, localization, tags, existingFiles } =
+      JSON.parse(req.body.data);
+
+    // Media
+    // Handle media files
+    let newMedia = [];
+    let mediaToRemove = [];
+    let mediaToAdd = [];
+
+    // Include new files
+    if (req.files && req.files.length > 0) {
+      req.files.map((file) => {
+        filePaths.push(file.filename);
+        newMedia.push(file.filename);
+      });
+    }
+
+    // Get files to remove or keep media
+    if (entry.media && existingFiles) {
+      mediaToRemove = entry.media.filter(
+        (currMedia) => !existingFiles.includes(currMedia)
+      );
+      mediaToAdd = entry.media.filter((currMedia) =>
+        existingFiles.includes(currMedia)
+      );
+    }
+
+    // Update newMedia to include mediaToAdd
+    newMedia = newMedia.concat(mediaToAdd);
 
     // Update the entry
     let updatedEntry = await Entry.findByIdAndUpdate(
@@ -103,26 +130,21 @@ export const updateEntry = async (req, res) => {
           ? { x: localization.x, y: localization.y }
           : null,
         tags: tags || null,
-        media: [],
+        media: newMedia,
       },
       { session, new: true }
     );
 
-    // Handle media files
-    if (req.files && req.files.length > 0) {
-      filePaths = req.files.map((file) => {
-        const filePath = path.join("uploads", file.filename);
-        return updatedEntry.media.push(filePath);
-      });
-
-      updatedEntry = await Entry.findByIdAndUpdate(entryID, updatedEntry, {
-        session,
-        new: true,
-      });
-    }
-
     await session.commitTransaction();
     session.endSession();
+
+    if (mediaToRemove.length > 0) {
+      mediaToRemove.forEach((filePath) => {
+        fs.unlink(filePath, (err) => {
+          if (err) console.error(`Error deleting file: ${filePath}`, err);
+        });
+      });
+    }
 
     return res.status(200).json(updatedEntry);
   } catch (e) {

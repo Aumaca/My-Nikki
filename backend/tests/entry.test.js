@@ -73,7 +73,7 @@ describe("Entry API Tests", () => {
     expect(res.statusCode).to.equal(201);
     entryID = res.body._id;
     const { media } = res.body;
-    media.forEach((file) => filenames.push(file.split("\\")[1]));
+    media.forEach((file) => filenames.push(file));
   });
 
   it("should update a entry", async () => {
@@ -100,6 +100,6 @@ describe("Entry API Tests", () => {
     expect(res.body.mood).equal("sad");
     expect(res.body.media).to.have.lengthOf(1);
     const { media } = res.body;
-    media.forEach((file) => filenames.push(file.split("\\")[1]));
+    media.forEach((file) => filenames.push(file));
   });
 });

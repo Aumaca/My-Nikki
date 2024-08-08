@@ -27,6 +27,7 @@ class _HomepageState extends State<Homepage> {
     Map<String, dynamic>? userData = await getUser();
     if (userData != null) {
       try {
+        Logger().i(userData);
         UserModel user = UserModel.fromJson(userData);
         return user;
       } catch (e) {

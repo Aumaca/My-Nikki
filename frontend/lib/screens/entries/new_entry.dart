@@ -61,7 +61,7 @@ class _NewEntryFormState extends State<NewEntryForm> {
       'tags': ['testing', 'another'],
     };
 
-    Response response = await genericPostEntry("/entry", data,
+    Response response = await genericPostEntryRequest("/entry", data,
         isAuthenticated: true, files: files);
     if (response.statusCode == 201) {
       widget.updateUser();

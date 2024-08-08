@@ -1,4 +1,3 @@
-import 'package:my_nikki/utils/media.dart';
 import 'package:my_nikki/screens/widgets/entry/quill_toolbar.dart';
 import 'package:my_nikki/screens/widgets/entry/mood_dropdown.dart';
 import 'package:my_nikki/screens/widgets/entry/quill_editor.dart';
@@ -12,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:my_nikki/models/entry.dart';
+import 'package:my_nikki/utils/media.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:logger/logger.dart';
@@ -39,12 +39,14 @@ class Entry extends StatefulWidget {
 class _EntryState extends State<Entry> {
   final DateFormat formatter = DateFormat('d MMMM, y');
   bool isReadOnly = true;
+  List<XFile> files = [];
 
   late DateTime date;
   late EntryModel entry;
   late List<Media> media;
   late String selectedMood;
   late LatLng? localization;
+  late List<String>? tags;
   late QuillController entryContentController;
 
   @override
@@ -54,6 +56,7 @@ class _EntryState extends State<Entry> {
     date = entry.date;
     selectedMood = entry.mood;
     localization = entry.localization;
+    tags = entry.tags;
 
     // Media
     media = entry.media
@@ -70,23 +73,42 @@ class _EntryState extends State<Entry> {
         readOnly: isReadOnly);
   }
 
+  void setEditEntry() {
+    setState(() {
+      isReadOnly = !isReadOnly;
+
+      entryContentController = QuillController(
+        document: entryContentController.document,
+        selection: const TextSelection.collapsed(offset: 0),
+        readOnly: isReadOnly,
+      );
+    });
+  }
+
   void saveEntry() async {
     if (entryContentController.document.toPlainText().trim().isEmpty) {
       showSnackBar(context, "Entry's text is empty.", Colors.red[400]!);
       return;
     }
 
+    List<String>? existingFiles = media
+        .where((currMedia) => currMedia.type == MediaType.backend)
+        .map((currMedia) => currMedia.path)
+        .toList();
+
     Map<String, dynamic> data = {
       'content': jsonEncode(entryContentController.document.toDelta()),
-      'mood': entry.mood,
-      'date': entry.date.toIso8601String(),
-      'localization': entry.localization,
-      'tags': entry.tags,
+      'mood': selectedMood,
+      'date': date.toIso8601String(),
+      'localization': localization,
+      'tags': tags,
+      'existingFiles': existingFiles
     };
 
-    Response response =
-        await genericPostEntry("/entry", data, isAuthenticated: true);
-    if (response.statusCode == 201) {
+    Response response = await genericPostEntryRequest(
+        "/entry/${entry.id}", data,
+        isAuthenticated: true, files: files);
+    if (response.statusCode == 200) {
       widget.updateUser();
       if (mounted) {
         Navigator.pop(context);
@@ -103,6 +125,8 @@ class _EntryState extends State<Entry> {
     final List<XFile>? selectedMedias =
         await ImagePicker().pickMultipleMedia(limit: 6);
     if (selectedMedias != null) {
+      files = selectedMedias;
+
       List<Media> filesToMedia = selectedMedias
           .map(
               (currMedia) => Media(type: MediaType.xfile, path: currMedia.path))
@@ -126,7 +150,8 @@ class _EntryState extends State<Entry> {
     });
   }
 
-  void showMap(BuildContext context, Function(LatLng) onCoordinatesSelected) {
+  void showMap(BuildContext context, Function(LatLng) onCoordinatesSelected,
+      bool isReadOnly) {
     showDialog(
       context: context,
       builder: (context) {
@@ -134,7 +159,8 @@ class _EntryState extends State<Entry> {
             backgroundColor: Colors.black.withOpacity(0.7),
             body: CustomMap(
                 initialCoordinates: localization,
-                onCoordinatesSelected: onCoordinatesSelected));
+                onCoordinatesSelected: onCoordinatesSelected,
+                isReadOnly: isReadOnly));
       },
     );
   }
@@ -181,16 +207,19 @@ class _EntryState extends State<Entry> {
               ),
               GestureDetector(
                   onTap: () {
-                    _pickImages();
+                    isReadOnly ? () : _pickImages();
                   },
-                  child: const Icon(Icons.attach_file,
-                      color: Colors.white, size: 32)),
+                  child: Icon(Icons.attach_file,
+                      color: isReadOnly ? Colors.grey : Colors.white,
+                      size: 32)),
               MoodDropdown(
                 onMoodSelected: selectMood,
+                isReadOnly: isReadOnly,
+                oldMood: entry.mood,
               ),
               GestureDetector(
                 onTap: () {
-                  showMap(context, selectLocalization);
+                  showMap(context, selectLocalization, isReadOnly);
                 },
                 child: Icon(Icons.pin_drop, color: Colors.red[400], size: 32),
               ),
@@ -212,9 +241,21 @@ class _EntryState extends State<Entry> {
                 : Container())
           ],
         ),
-        floatingActionButton: Padding(
-            padding: const EdgeInsets.only(bottom: 45.0),
-            child: customFloatingActionButton(
-                saveEntry, Colors.green[400]!, Icons.check)));
+        floatingActionButton:
+            isReadOnly ? editButton(setEditEntry) : checkButton(saveEntry));
   }
+}
+
+Padding editButton(void Function() setEditEntry) {
+  return Padding(
+      padding: const EdgeInsets.only(bottom: 45.0),
+      child: customFloatingActionButton(
+          setEditEntry, Colors.blue[400]!, Icons.edit));
+}
+
+Padding checkButton(void Function() saveEntry) {
+  return Padding(
+      padding: const EdgeInsets.only(bottom: 45.0),
+      child: customFloatingActionButton(
+          saveEntry, Colors.green[400]!, Icons.check));
 }

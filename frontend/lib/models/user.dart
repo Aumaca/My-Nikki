@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:logger/logger.dart';
 import 'package:my_nikki/models/entry.dart';
 
 class UserModel {
@@ -7,7 +5,6 @@ class UserModel {
   final String email;
   final String name;
   final String photoURL;
-  final String photoFile;
   final List<EntryModel> entries;
   final String country;
   final String createdAt;
@@ -18,7 +15,6 @@ class UserModel {
     required this.email,
     required this.name,
     required this.photoURL,
-    required this.photoFile,
     required this.entries,
     required this.country,
     required this.createdAt,
@@ -26,6 +22,10 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey('user') || json['user'] == null) {
+      throw Exception("User data is missing or null");
+    }
+
     Map<String, dynamic> userData = json['user'];
 
     UserModel temp = UserModel(
@@ -33,7 +33,6 @@ class UserModel {
       email: userData['email'] ?? '',
       name: userData['name'] ?? '',
       photoURL: userData['photoURL'] ?? '',
-      photoFile: userData['photoFile'] ?? '',
       entries: (userData['entries'] as List<dynamic>?)
               ?.map(
                   (entry) => EntryModel.fromJson(entry as Map<String, dynamic>))
@@ -53,7 +52,6 @@ class UserModel {
       'email': email,
       'name': name,
       'photoURL': photoURL,
-      'photoFile': photoFile,
       'entries': entries.map((entry) => entry.toJson()).toList(),
       'country': country,
       'createdAt': createdAt,

@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:my_nikki/utils/media.dart';
 import 'package:my_nikki/utils/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -70,7 +71,7 @@ Future<Response> genericPost(String path, Map<String, dynamic> data,
   }
 }
 
-Future<Response> genericPostEntry(String path, Map<String, dynamic> data,
+Future<Response> genericPostEntryRequest(String path, Map<String, dynamic> data,
     {bool isAuthenticated = false, List<XFile>? files}) async {
   try {
     String? token = await storage.readToken();
@@ -81,7 +82,7 @@ Future<Response> genericPostEntry(String path, Map<String, dynamic> data,
     }
 
     var url = Uri.parse("${dotenv.get('BACKEND_URL')}$path");
-    var request = http.MultipartRequest('POST', url);
+    var request = http.MultipartRequest("POST", url);
 
     request.fields['data'] = jsonEncode(data);
 

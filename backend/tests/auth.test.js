@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import supertest from "supertest";
 import { expect } from "chai";
 import app from "../app.js";
+import Entry from "../models/Entry.js";
 
 before(async function () {
   try {

@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-import 'package:logger/logger.dart';
 
 class Localization {
   final double? x;
@@ -26,6 +25,7 @@ class Localization {
 }
 
 class EntryModel {
+  final String id;
   final String content;
   final String mood;
   final DateTime date;
@@ -35,6 +35,7 @@ class EntryModel {
   final DateTime createdAt;
 
   EntryModel({
+    required this.id,
     required this.content,
     required this.mood,
     required this.date,
@@ -46,13 +47,15 @@ class EntryModel {
 
   factory EntryModel.fromJson(Map<String, dynamic> json) {
     EntryModel entryTemp = EntryModel(
+      id: json['_id'] ?? '',
       content: json['content'] ?? '',
       mood: json['mood'] ?? '',
       date: DateTime.parse(json['date']),
-      localization:
-          json['localization']['x'] != null && json['localization']['y'] != null
-              ? LatLng(json['localization']['x'], json['localization']['y'])
-              : null,
+      localization: json['localization'] != null &&
+              json['localization']['x'] != null &&
+              json['localization']['y'] != null
+          ? LatLng(json['localization']['x'], json['localization']['y'])
+          : null,
       tags: List<String>.from(json['tags']),
       media: List<String>.from(json['media']),
       createdAt: DateTime.parse(json['createdAt']),
@@ -63,6 +66,7 @@ class EntryModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'content': content,
       'mood': mood,
       'date': date.toIso8601String(),

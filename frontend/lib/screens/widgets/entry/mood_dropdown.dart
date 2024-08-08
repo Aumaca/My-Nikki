@@ -2,19 +2,24 @@ import 'package:my_nikki/screens/entries/new_entry.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MoodDropdown extends StatefulWidget {
   final Function(String) onMoodSelected;
+  final String? oldMood;
+  bool? isReadOnly = false;
 
-  const MoodDropdown({super.key, required this.onMoodSelected});
+  MoodDropdown(
+      {super.key, this.isReadOnly, this.oldMood, required this.onMoodSelected});
 
   @override
   MoodDropdownState createState() => MoodDropdownState();
 }
 
 class MoodDropdownState extends State<MoodDropdown> {
-  String _selectedItem = 'neutral';
-  IconData _currentIcon = Icons.sentiment_neutral;
-  Color _currentColor = Colors.yellow;
+  late String _selectedItem;
+  late IconData _currentIcon;
+  late Color _currentColor;
+
   Map<String, Mood> moods = {
     'sad': Mood(Icons.sentiment_dissatisfied, MoodColors.sad),
     'neutral': Mood(Icons.sentiment_neutral, MoodColors.neutral),
@@ -27,6 +32,7 @@ class MoodDropdownState extends State<MoodDropdown> {
   @override
   void initState() {
     super.initState();
+    _selectedItem = widget.oldMood != null ? widget.oldMood! : 'neutral';
     _updateCurrentMood();
   }
 
@@ -57,25 +63,29 @@ class MoodDropdownState extends State<MoodDropdown> {
       onSelected: _handleMoodSelection,
       color: Colors.white,
       itemBuilder: (BuildContext context) {
-        return moods.entries
-            .map<PopupMenuEntry<String>>((MapEntry<String, Mood> entry) {
-          return PopupMenuItem<String>(
-            value: entry.key,
-            child: Row(
-              children: [
-                Icon(entry.value.icon, color: entry.value.color, size: 32),
-                const SizedBox(width: 10),
-                Text(
-                  entry.key,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Color.fromRGBO(105, 37, 190, 1),
+        if (widget.isReadOnly == true) {
+          return [];
+        } else {
+          return moods.entries
+              .map<PopupMenuEntry<String>>((MapEntry<String, Mood> entry) {
+            return PopupMenuItem<String>(
+              value: entry.key,
+              child: Row(
+                children: [
+                  Icon(entry.value.icon, color: entry.value.color, size: 32),
+                  const SizedBox(width: 10),
+                  Text(
+                    entry.key,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Color.fromRGBO(105, 37, 190, 1),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }).toList();
+                ],
+              ),
+            );
+          }).toList();
+        }
       },
     );
   }

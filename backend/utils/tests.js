@@ -37,7 +37,7 @@ export const createEntry = async (token, data, files, dirname, output) => {
     .attach("media", files[3] ? path.join(dirname, files[3]) : "");
 
   if (res.statusCode === 201) {
-    res.body.media.forEach((file) => filenames.push(file.split("\\")[1]));
+    res.body.media.forEach((file) => filenames.push(file));
   }
 
   if (output === "files") return filenames;
@@ -54,7 +54,7 @@ export const updateEntry = async (
 ) => {
   const filenames = [];
   const res = await supertest(app)
-    .put(`/entry/${entryID}`)
+    .post(`/entry/${entryID}`)
     .set("Authorization", `Bearer ${token}`)
     .field("data", JSON.stringify(data))
     .attach("media", path.join(dirname, files[0]))
@@ -63,7 +63,7 @@ export const updateEntry = async (
     .attach("media", files[3] ? path.join(dirname, files[3]) : "");
 
   if (res.statusCode === 200) {
-    res.body.media.forEach((file) => filenames.push(file.split("\\")[1]));
+    res.body.media.forEach((file) => filenames.push(file));
   }
 
   if (output === "files") return filenames;

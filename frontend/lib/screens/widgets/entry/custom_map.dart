@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,10 +12,12 @@ import 'package:my_nikki/utils/colors.dart';
 class CustomMap extends StatefulWidget {
   final LatLng? initialCoordinates;
   final Function(LatLng) onCoordinatesSelected;
+  bool? isReadOnly = false;
 
-  const CustomMap(
+  CustomMap(
       {super.key,
       this.initialCoordinates,
+      this.isReadOnly,
       required this.onCoordinatesSelected});
 
   @override
@@ -33,9 +36,12 @@ class CustomMapState extends State<CustomMap> {
   }
 
   void _onTap(LatLng position) {
-    setState(() {
-      _selectedCoordinates = position;
-    });
+    Logger().i(widget.isReadOnly);
+    if (!(widget.isReadOnly == true)) {
+      setState(() {
+        _selectedCoordinates = position;
+      });
+    }
   }
 
   void _sendCoordinates() {
@@ -77,30 +83,34 @@ class CustomMapState extends State<CustomMap> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              TextField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  hintText: 'Enter ZIP code',
-                  fillColor: Colors.white,
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                onSubmitted: (value) {
-                  _searchAddress(value);
-                },
-              ),
+              widget.isReadOnly == true
+                  ? Container()
+                  : TextField(
+                      controller: _addressController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter ZIP code',
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      onSubmitted: (value) {
+                        _searchAddress(value);
+                      },
+                    ),
             ],
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black, size: 32),
-            onPressed: () {
-              _searchAddress(_addressController.text);
-            },
-          ),
+          widget.isReadOnly == true
+              ? Container()
+              : IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black, size: 32),
+                  onPressed: () {
+                    _searchAddress(_addressController.text);
+                  },
+                ),
         ],
       ),
       body: Stack(
@@ -135,11 +145,13 @@ class CustomMapState extends State<CustomMap> {
                 ),
             ],
           ),
-          Positioned(
-              bottom: 50,
-              right: 20,
-              child: customFloatingActionButton(
-                  _sendCoordinates, Colors.green[400]!, Icons.check))
+          widget.isReadOnly == true
+              ? Container()
+              : Positioned(
+                  bottom: 50,
+                  right: 20,
+                  child: customFloatingActionButton(
+                      _sendCoordinates, Colors.green[400]!, Icons.check))
         ],
       ),
     );

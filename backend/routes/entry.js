@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-router.put("/:entryID", verifyToken, upload.array("media", 6), updateEntry);
 router.post("/", verifyToken, upload.array("media", 6), createEntry);
+router.post("/:entryID", verifyToken, upload.array("media", 6), updateEntry);
 
 export default router;
