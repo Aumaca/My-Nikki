@@ -43,3 +43,29 @@ export const createEntry = async (token, data, files, dirname, output) => {
   if (output === "files") return filenames;
   else return res;
 };
+
+export const updateEntry = async (
+  token,
+  entryID,
+  data,
+  files,
+  dirname,
+  output
+) => {
+  const filenames = [];
+  const res = await supertest(app)
+    .put(`/entry/${entryID}`)
+    .set("Authorization", `Bearer ${token}`)
+    .field("data", JSON.stringify(data))
+    .attach("media", path.join(dirname, files[0]))
+    .attach("media", files[1] ? path.join(dirname, files[1]) : "")
+    .attach("media", files[2] ? path.join(dirname, files[2]) : "")
+    .attach("media", files[3] ? path.join(dirname, files[3]) : "");
+
+  if (res.statusCode === 200) {
+    res.body.media.forEach((file) => filenames.push(file.split("\\")[1]));
+  }
+
+  if (output === "files") return filenames;
+  else return res;
+};

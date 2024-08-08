@@ -1,4 +1,4 @@
-import { createEntry } from "../controllers/entry.js";
+import { createEntry, updateEntry } from "../controllers/entry.js";
 import { verifyToken } from "../middleware/auth.js";
 import express from "express";
 import multer from "multer";
@@ -18,6 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+router.put("/:entryID", verifyToken, upload.array("media", 6), updateEntry);
 router.post("/", verifyToken, upload.array("media", 6), createEntry);
 
 export default router;

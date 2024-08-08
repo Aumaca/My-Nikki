@@ -1,15 +1,17 @@
-import 'package:my_nikki/screens/widgets/new_entry/quill_toolbar.dart';
-import 'package:my_nikki/screens/widgets/new_entry/mood_dropdown.dart';
-import 'package:my_nikki/screens/widgets/new_entry/quill_editor.dart';
-import 'package:my_nikki/screens/widgets/new_entry/image_slider.dart';
-import 'package:my_nikki/screens/widgets/new_entry/custom_map.dart';
+import 'package:my_nikki/utils/media.dart';
+import 'package:my_nikki/screens/widgets/entry/quill_toolbar.dart';
+import 'package:my_nikki/screens/widgets/entry/mood_dropdown.dart';
+import 'package:my_nikki/screens/widgets/entry/quill_editor.dart';
+import 'package:my_nikki/screens/widgets/entry/image_slider.dart';
+import 'package:my_nikki/screens/widgets/entry/custom_map.dart';
 import 'package:my_nikki/screens/widgets/date_time_picker.dart';
+import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/screens/widgets/button.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:my_nikki/screens/widgets/snack_bar.dart';
 import 'package:my_nikki/utils/requests.dart';
 import 'package:my_nikki/utils/colors.dart';
+import 'package:my_nikki/models/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:logger/logger.dart';
@@ -24,43 +26,71 @@ class Mood {
   Mood(this.icon, this.color);
 }
 
-class NewEntryForm extends StatefulWidget {
-  const NewEntryForm({super.key});
+class Entry extends StatefulWidget {
+  final void Function() updateUser;
+  final EntryModel entry;
+
+  const Entry({super.key, required this.updateUser, required this.entry});
 
   @override
-  State<NewEntryForm> createState() => _NewEntryFormState();
+  State<Entry> createState() => _EntryState();
 }
 
-class _NewEntryFormState extends State<NewEntryForm> {
+class _EntryState extends State<Entry> {
   final DateFormat formatter = DateFormat('d MMMM, y');
-  final QuillController _entryContentController = QuillController.basic();
+  bool isReadOnly = true;
 
-  DateTime date = DateTime.now().toUtc();
-  String selectedMood = "neutral";
-  List<XFile>? files;
-  LatLng? localization;
+  late DateTime date;
+  late EntryModel entry;
+  late List<Media> media;
+  late String selectedMood;
+  late LatLng? localization;
+  late QuillController entryContentController;
+
+  @override
+  void initState() {
+    super.initState();
+    entry = widget.entry;
+    date = entry.date;
+    selectedMood = entry.mood;
+    localization = entry.localization;
+
+    // Media
+    media = entry.media
+        .map((currMedia) =>
+            Media(type: MediaType.backend, path: currMedia.toString()))
+        .toList();
+
+    // Content
+    final content =
+        Document.fromJson(jsonDecode(entry.content) as List<dynamic>);
+    entryContentController = QuillController(
+        document: content,
+        selection: const TextSelection.collapsed(offset: 0),
+        readOnly: isReadOnly);
+  }
 
   void saveEntry() async {
-    if (_entryContentController.document.toPlainText().trim().isEmpty) {
+    if (entryContentController.document.toPlainText().trim().isEmpty) {
       showSnackBar(context, "Entry's text is empty.", Colors.red[400]!);
       return;
     }
 
     Map<String, dynamic> data = {
-      'content': jsonEncode(_entryContentController.document.toDelta()),
-      'mood': selectedMood,
-      'date': date.toIso8601String(),
-      'localization': {
-        'x': localization?.latitude,
-        'y': localization?.longitude,
-      },
-      'tags': ['testing', 'another'],
+      'content': jsonEncode(entryContentController.document.toDelta()),
+      'mood': entry.mood,
+      'date': entry.date.toIso8601String(),
+      'localization': entry.localization,
+      'tags': entry.tags,
     };
 
-    Response response = await genericPostEntry("/entry", data,
-        isAuthenticated: true, files: files);
+    Response response =
+        await genericPostEntry("/entry", data, isAuthenticated: true);
     if (response.statusCode == 201) {
-      var decodedResponse = jsonDecode(response.body);
+      widget.updateUser();
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } else {
       Logger().e("Error saving entry");
     }
@@ -69,11 +99,19 @@ class _NewEntryFormState extends State<NewEntryForm> {
   }
 
   Future<void> _pickImages() async {
-    final List<XFile> selectedMedia =
+    // ignore: unnecessary_nullable_for_final_variable_declarations
+    final List<XFile>? selectedMedias =
         await ImagePicker().pickMultipleMedia(limit: 6);
-    setState(() {
-      files = selectedMedia;
-    });
+    if (selectedMedias != null) {
+      List<Media> filesToMedia = selectedMedias
+          .map(
+              (currMedia) => Media(type: MediaType.xfile, path: currMedia.path))
+          .toList();
+
+      setState(() {
+        media.addAll(filesToMedia);
+      });
+    }
   }
 
   void selectLocalization(LatLng coordinates) {
@@ -160,15 +198,18 @@ class _NewEntryFormState extends State<NewEntryForm> {
         backgroundColor: AppColors.backgroundColor,
         body: Column(
           children: [
-            // Media
-            files != null ? imageSlider(context, files!) : Container(),
+            (media.isNotEmpty) ? imageSlider(context, media) : Container(),
             Expanded(
                 child: Padding(
               padding: const EdgeInsets.all(16.0),
               child:
-                  CustomQuillEditor(contentController: _entryContentController),
+                  CustomQuillEditor(contentController: entryContentController),
             )),
-            CustomQuillToolbar(contentController: _entryContentController)
+            (!isReadOnly
+                ? CustomQuillToolbar(
+                    contentController: entryContentController,
+                  )
+                : Container())
           ],
         ),
         floatingActionButton: Padding(

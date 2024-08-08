@@ -3,8 +3,6 @@ import supertest from "supertest";
 import { expect } from "chai";
 import app from "../app.js";
 
-let token = "";
-
 before(async function () {
   try {
     await User.deleteOne({ email: "testuser@example.com" });
@@ -61,9 +59,6 @@ describe("Authentication API Tests", () => {
         try {
           expect(res.statusCode).to.equal(200);
           expect(res.body.token).to.be.a("string");
-
-          token = res.body.token;
-
           done();
         } catch (error) {
           done(error);

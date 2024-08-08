@@ -1,12 +1,10 @@
 import mongoose from "mongoose";
 
 const { Schema } = mongoose;
-const { Types } = Schema;
-const { Decimal128, ObjectId } = Types;
 
 const LocalizationSchema = new mongoose.Schema({
-  x: { type: Decimal128 },
-  y: { type: Decimal128 },
+  x: { type: Number },
+  y: { type: Number },
 });
 
 const EntrySchema = new mongoose.Schema({

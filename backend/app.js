@@ -37,6 +37,7 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/entry", entryRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

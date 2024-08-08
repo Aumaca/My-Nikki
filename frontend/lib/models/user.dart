@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:logger/logger.dart';
+import 'package:my_nikki/models/entry.dart';
+
 class UserModel {
   final String id;
   final String email;
   final String name;
   final String photoURL;
   final String photoFile;
-  final List<String> entries;
+  final List<EntryModel> entries;
   final String country;
   final String createdAt;
   final String isComplete;
@@ -22,17 +26,25 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'] ?? '',
-      email: json['email'] ?? '',
-      name: json['name'] ?? '',
-      photoURL: json['photoURL'] ?? '',
-      photoFile: json['photoFile'] ?? '',
-      entries: List<String>.from(json['entries'] ?? []),
-      country: json['country'] ?? '',
-      createdAt: json['createdAt'] ?? '',
-      isComplete: json['isComplete'] ?? '',
+    Map<String, dynamic> userData = json['user'];
+
+    UserModel temp = UserModel(
+      id: userData['_id'] ?? '',
+      email: userData['email'] ?? '',
+      name: userData['name'] ?? '',
+      photoURL: userData['photoURL'] ?? '',
+      photoFile: userData['photoFile'] ?? '',
+      entries: (userData['entries'] as List<dynamic>?)
+              ?.map(
+                  (entry) => EntryModel.fromJson(entry as Map<String, dynamic>))
+              .toList() ??
+          [],
+      country: userData['country'] ?? '',
+      createdAt: userData['createdAt'] ?? '',
+      isComplete: userData['isComplete'] ?? '',
     );
+
+    return temp;
   }
 
   Map<String, dynamic> toJson() {
@@ -42,7 +54,7 @@ class UserModel {
       'name': name,
       'photoURL': photoURL,
       'photoFile': photoFile,
-      'entries': entries,
+      'entries': entries.map((entry) => entry.toJson()).toList(),
       'country': country,
       'createdAt': createdAt,
       'isComplete': isComplete,

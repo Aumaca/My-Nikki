@@ -1,3 +1,4 @@
+import 'package:my_nikki/utils/media.dart';
 import 'package:my_nikki/utils/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,4 +108,8 @@ Future<Response> genericPostEntry(String path, Map<String, dynamic> data,
   } catch (e) {
     throw Exception("Error making request: $e");
   }
+}
+
+String getImage(String filename) {
+  return "${dotenv.get('BACKEND_URL')}/uploads/$filename";
 }

@@ -3,6 +3,7 @@ import {
   createEntry,
   createUser,
   loginUser,
+  updateEntry,
 } from "../utils/tests.js";
 import Entry from "../models/Entry.js";
 import User from "../models/User.js";
@@ -17,6 +18,7 @@ const __dirname = path.dirname(__filename);
 const filenames = [];
 
 let token = "";
+let entryID = "";
 
 before(async function () {
   try {
@@ -41,7 +43,7 @@ before(async function () {
 after(async function () {
   try {
     await User.deleteOne({ email: "entrytestuser@example.com" });
-    await Entry.deleteMany({ content: "Entry Test1" });
+    await Entry.deleteMany({ content: "Updated Test" });
 
     removeFiles(__dirname, filenames);
   } catch (err) {
@@ -54,7 +56,7 @@ describe("Entry API Tests", () => {
     const res = await createEntry(
       token,
       {
-        content: "Entry Test1",
+        content: "Entry Test",
         mood: "happy",
         date: new Date().toUTCString(),
         localization: {
@@ -69,6 +71,34 @@ describe("Entry API Tests", () => {
     );
 
     expect(res.statusCode).to.equal(201);
+    entryID = res.body._id;
+    const { media } = res.body;
+    media.forEach((file) => filenames.push(file.split("\\")[1]));
+  });
+
+  it("should update a entry", async () => {
+    const res = await updateEntry(
+      token,
+      entryID,
+      {
+        content: "Updated Test",
+        mood: "sad",
+        date: new Date().toUTCString(),
+        localization: {
+          x: 10.0,
+          y: 20.0,
+        },
+        tags: ["tag11", "tag22"],
+      },
+      ["entry_files/bocchi.jpg"],
+      __dirname,
+      null
+    );
+
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.content).equal("Updated Test");
+    expect(res.body.mood).equal("sad");
+    expect(res.body.media).to.have.lengthOf(1);
     const { media } = res.body;
     media.forEach((file) => filenames.push(file.split("\\")[1]));
   });

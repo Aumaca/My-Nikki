@@ -99,6 +99,12 @@ describe("User", () => {
         try {
           expect(res.statusCode).to.be.equal(200);
           expect(res.body).to.have.property("user");
+
+          expect(res.body.user).to.have.property("entries");
+          expect(res.body.user.entries[0].content).to.be.equal("User Test1");
+          expect(res.body.user.entries[0].mood).to.be.equal("happy");
+          expect(res.body.user.entries[1].mood).to.be.equal("sad");
+
           expect(res.body.user).to.have.property("medias");
           expect(res.body.user.medias).to.have.lengthOf(3);
           done();

@@ -1,4 +1,4 @@
-import 'package:my_nikki/screens/new_entry/new_entry.dart';
+import 'package:my_nikki/screens/entries/new_entry.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:flutter/material.dart';
 

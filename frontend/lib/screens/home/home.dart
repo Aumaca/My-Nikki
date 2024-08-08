@@ -1,8 +1,10 @@
-import 'package:my_nikki/screens/widgets/entry.dart';
+import 'package:logger/logger.dart';
+import 'package:my_nikki/screens/widgets/entry/home_entry.dart';
 import 'package:my_nikki/screens/home/util.dart';
 import 'package:my_nikki/utils/colors.dart';
 import 'package:my_nikki/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -13,6 +15,7 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   late Future<UserModel?> _user;
+  final DateFormat formatter = DateFormat('d MMMM, y');
 
   @override
   void initState() {
@@ -23,10 +26,22 @@ class _HomepageState extends State<Homepage> {
   Future<UserModel?> _fetchUser() async {
     Map<String, dynamic>? userData = await getUser();
     if (userData != null) {
-      var user = UserModel.fromJson(userData);
-      return user;
+      try {
+        UserModel user = UserModel.fromJson(userData);
+        return user;
+      } catch (e) {
+        Logger().e("Error parsing user data: $e");
+      }
+    } else {
+      Logger().w("No user found");
     }
     return null;
+  }
+
+  void _updateUser() {
+    setState(() {
+      _user = _fetchUser();
+    });
   }
 
   @override
@@ -58,6 +73,10 @@ class _HomepageState extends State<Homepage> {
             } else if (!snapshot.hasData) {
               return const Center(child: Text('No user data available.'));
             } else {
+              final user = snapshot.data;
+              if (user == null) {
+                return const Center(child: Text('No user data available.'));
+              }
               return Column(
                 children: [
                   Expanded(
@@ -65,26 +84,19 @@ class _HomepageState extends State<Homepage> {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: const SingleChildScrollView(
+                          child: SingleChildScrollView(
                             child: Column(
-                              children: [
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                                Entry(),
-                                SizedBox(height: 16.0),
-                              ],
-                            ),
+                                children: user.entries.map((entry) {
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 24),
+                                  HomeEntry(
+                                    entryModel: entry,
+                                    updateUser: _updateUser,
+                                  ),
+                                ],
+                              );
+                            }).toList()),
                           ),
                         ),
                         Container(
@@ -120,7 +132,7 @@ class _HomepageState extends State<Homepage> {
           padding: const EdgeInsets.only(bottom: 45.0),
           child: FloatingActionButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/newEntry');
+              Navigator.pushNamed(context, '/newEntry', arguments: _updateUser);
               return;
             },
             backgroundColor: AppColors.secondaryColor,
