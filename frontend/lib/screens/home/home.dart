@@ -1,4 +1,6 @@
 import 'package:logger/logger.dart';
+import 'package:my_nikki/screens/home/home_entries.dart';
+import 'package:my_nikki/screens/home/home_medias.dart';
 import 'package:my_nikki/screens/widgets/entry/home_entry.dart';
 import 'package:my_nikki/screens/home/util.dart';
 import 'package:my_nikki/utils/colors.dart';
@@ -27,7 +29,6 @@ class _HomepageState extends State<Homepage> {
     Map<String, dynamic>? userData = await getUser();
     if (userData != null) {
       try {
-        Logger().i(userData);
         UserModel user = UserModel.fromJson(userData);
         return user;
       } catch (e) {
@@ -48,7 +49,7 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Number of tabs
+      length: 4, // Number of tabs
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.secondaryColor,
@@ -83,27 +84,21 @@ class _HomepageState extends State<Homepage> {
                   Expanded(
                     child: TabBarView(
                       children: [
+                        // Tab 1
+                        HomeEntries(user: user, updateUser: _updateUser),
+                        // Tab 2
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: SingleChildScrollView(
-                            child: Column(
-                                children: user.entries.map((entry) {
-                              return Column(
-                                children: [
-                                  const SizedBox(height: 24),
-                                  HomeEntry(
-                                    entryModel: entry,
-                                    updateUser: _updateUser,
-                                  ),
-                                ],
-                              );
-                            }).toList()),
-                          ),
+                          child: const Center(
+                              child: Text(
+                            'Content for Tab 2',
+                            style: TextStyle(color: Colors.white),
+                          )),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: const Center(child: Text('Content for Tab 2')),
-                        ),
+                        // Tab 3
+                        HomeMedias(user: user, updateUser: _updateUser),
+                        // Tab 4
+                        HomeMedias(user: user, updateUser: _updateUser)
                       ],
                     ),
                   ),
@@ -120,6 +115,7 @@ class _HomepageState extends State<Homepage> {
                       tabs: [
                         Tab(icon: Icon(Icons.bookmark)),
                         Tab(icon: Icon(Icons.calendar_today)),
+                        Tab(icon: Icon(Icons.photo_library)),
                         Tab(icon: Icon(Icons.settings)),
                       ],
                     ),

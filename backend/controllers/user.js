@@ -15,10 +15,16 @@ export const getUser = async (req, res) => {
 
     let mediaFiles = [];
     user.entries.forEach((entry) => {
-      mediaFiles = mediaFiles.concat(entry.media || []);
+      if (entry.media) {
+        entry.media.forEach((currMedia) => {
+          let mediaInfo = [currMedia, entry.id];
+          mediaFiles.push(mediaInfo);
+        });
+      }
     });
 
-    userObj.medias = mediaFiles;
+    userObj.media = mediaFiles;
+
     return res.status(200).json({ user: userObj });
   }
   return res.status(400).json({ msg: "User was not found" });

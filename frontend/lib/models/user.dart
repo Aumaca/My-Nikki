@@ -6,6 +6,7 @@ class UserModel {
   final String name;
   final String photoURL;
   final List<EntryModel> entries;
+  final List<dynamic> media;
   final String country;
   final String createdAt;
   final String isComplete;
@@ -16,6 +17,7 @@ class UserModel {
     required this.name,
     required this.photoURL,
     required this.entries,
+    required this.media,
     required this.country,
     required this.createdAt,
     required this.isComplete,
@@ -29,15 +31,16 @@ class UserModel {
     Map<String, dynamic> userData = json['user'];
 
     UserModel temp = UserModel(
-      id: userData['_id'] ?? '',
-      email: userData['email'] ?? '',
-      name: userData['name'] ?? '',
+      id: userData['_id'],
+      email: userData['email'],
+      name: userData['name'],
       photoURL: userData['photoURL'] ?? '',
       entries: (userData['entries'] as List<dynamic>?)
               ?.map(
                   (entry) => EntryModel.fromJson(entry as Map<String, dynamic>))
               .toList() ??
           [],
+      media: userData['media'] ?? [],
       country: userData['country'] ?? '',
       createdAt: userData['createdAt'] ?? '',
       isComplete: userData['isComplete'] ?? '',

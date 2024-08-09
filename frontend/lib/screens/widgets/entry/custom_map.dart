@@ -36,7 +36,6 @@ class CustomMapState extends State<CustomMap> {
   }
 
   void _onTap(LatLng position) {
-    Logger().i(widget.isReadOnly);
     if (!(widget.isReadOnly == true)) {
       setState(() {
         _selectedCoordinates = position;
